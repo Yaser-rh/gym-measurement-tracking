@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>GymTracker — Body Analytics</title>
+  <meta name="description" content="Private, cloud-free body measurement tracker with sparkline analytics and progress graphs.">
+  <meta name="theme-color" content="#00d4ff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg-primary: #05060f; --bg-secondary: #0c0e1a; --bg-card: #12152a;
+      --bg-card-hover: #181c38; --bg-input: #0a0c1a; --bg-nav: rgba(8,10,22,0.92);
+      --border: rgba(255,255,255,0.06); --border-focus: rgba(0,212,255,0.5);
+      --text-primary: #e4e7f1; --text-secondary: #7d82a0; --text-muted: #4a4f6a;
+      --accent: #00d4ff; --accent-dim: rgba(0,212,255,0.12);
+      --accent2: #7c5cfc; --accent2-dim: rgba(124,92,252,0.12);
+      --success: #00e676; --success-dim: rgba(0,230,118,0.12);
+      --danger: #ff5252; --danger-dim: rgba(255,82,82,0.12);
+      --warning: #ffab40; --warning-dim: rgba(255,171,64,0.12);
+      --radius: 14px; --radius-sm: 10px; --radius-xs: 6px;
+      --nav-h: 68px; --header-h: 56px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --glass: rgba(18,21,42,0.7); --glass-border: rgba(255,255,255,0.08);
+    }
+    [data-theme="light"] {
+      --bg-primary: #f0f2f8; --bg-secondary: #fff; --bg-card: #fff;
+      --bg-card-hover: #f4f6ff; --bg-input: #eef0f7; --bg-nav: rgba(255,255,255,0.92);
+      --border: rgba(0,0,0,0.07); --border-focus: rgba(0,150,200,0.5);
+      --text-primary: #141628; --text-secondary: #5a5f7a; --text-muted: #9aa0b8;
+      --glass: rgba(255,255,255,0.75); --glass-border: rgba(0,0,0,0.06);
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font); background: var(--bg-primary); color: var(--text-primary);
+      min-height: 100dvh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+    /* ===== HEADER ===== */
+    #app-header {
+      position: fixed; top:0; left:0; right:0; z-index:100; height: var(--header-h);
+      display:flex; align-items:center; justify-content:space-between; padding:0 20px;
+      background: var(--bg-nav); backdrop-filter: blur(20px); border-bottom:1px solid var(--border);
+    }
+    #app-header .logo { display:flex; align-items:center; gap:10px; }
+    #app-header .logo svg { width:28px; height:28px; }
+    #app-header .logo span { font-weight:700; font-size:1.15rem; letter-spacing:-0.02em; }
+    #app-header .logo .dot { color: var(--accent); }
+    /* ===== BOTTOM NAV ===== */
+    #bottom-nav {
+      position:fixed; bottom:0; left:0; right:0; z-index:100; height: var(--nav-h);
+      display:flex; align-items:center; justify-content:space-around;
+      background: var(--bg-nav); backdrop-filter: blur(20px);
+      border-top:1px solid var(--border); padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      background:none; border:none; color: var(--text-muted); cursor:pointer;
+      padding:8px 16px; border-radius: var(--radius-sm); transition: all .2s;
+      font-family: var(--font); font-size:.65rem; font-weight:500; letter-spacing:.03em;
+    }
+    .nav-btn svg { width:22px; height:22px; transition: all .2s; }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn.active svg { filter: drop-shadow(0 0 6px rgba(0,212,255,0.4)); }
+    .nav-btn:hover { color: var(--text-secondary); }
+    /* ===== PAGES ===== */
+    main {
+      padding: calc(var(--header-h) + 16px) 16px calc(var(--nav-h) + 16px);
+      max-width: 600px; margin: 0 auto;
+    }
+    .page { display:none; animation: fadeIn .3s ease; }
+    .page.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .page-title { font-size:1.5rem; font-weight:700; letter-spacing:-0.03em; margin-bottom:20px; }
+    /* ===== DASHBOARD ===== */
+    .dash-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; }
+    .days-badge {
+      font-size:.72rem; font-weight:500; color:var(--accent); background:var(--accent-dim);
+      padding:5px 12px; border-radius:20px; white-space:nowrap;
+    }
+    .summary-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+    .summary-card {
+      background: var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:18px; position:relative; overflow:hidden; transition: all .25s;
+    }
+    .summary-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .summary-card:hover { border-color: var(--glass-border); transform:translateY(-2px); }
+    .summary-card .label { display:block; font-size:.7rem; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+    .summary-card .value { display:block; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+    .summary-card .delta { display:inline-flex; align-items:center; gap:3px; font-size:.75rem; font-weight:600; margin-top:8px; padding:3px 8px; border-radius:6px; }
+    .delta.positive { color:var(--success); background:var(--success-dim); }
+    .delta.negative { color:var(--danger); background:var(--danger-dim); }
+    .delta.neutral { color:var(--text-muted); background:var(--border); }
+    /* ===== SPARKLINES GRID ===== */
+    .section-label { font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; margin:24px 0 12px; }
+    .spark-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .spark-card {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:14px; transition: all .25s; cursor:default;
+    }
+    .spark-card:hover { border-color:var(--glass-border); transform:translateY(-2px); }
+    .spark-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
+    .spark-name { font-size:.72rem; font-weight:500; color:var(--text-secondary); }
+    .spark-val { font-size:1.1rem; font-weight:700; letter-spacing:-0.02em; }
+    .spark-delta { font-size:.65rem; font-weight:600; }
+    .spark-chart { height:48px; margin-top:6px; }
+    /* ===== FORMS ===== */
+    .form-section { margin-bottom:24px; }
+    .form-section h3 {
+      font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;
+      letter-spacing:.08em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);
+    }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label { font-size:.75rem; font-weight:500; color:var(--text-secondary); }
+    .form-group input, .form-group select {
+      background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:12px 14px; color:var(--text-primary); font-family:var(--font); font-size:.9rem;
+      transition: all .2s; outline:none; width:100%;
+    }
+    .form-group input:focus, .form-group select:focus { border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-dim); }
+    .form-group input::placeholder { color:var(--text-muted); }
+    .form-group.full { grid-column: 1 / -1; }
+    /* ===== BUTTONS ===== */
+    .btn-primary {
+      width:100%; padding:14px; border:none; border-radius:var(--radius-sm); cursor:pointer;
+      font-family:var(--font); font-size:.9rem; font-weight:600; letter-spacing:-0.01em;
+      background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff;
+      transition: all .25s; position:relative; overflow:hidden;
+    }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,212,255,0.25); }
+    .btn-primary:active { transform:scale(0.98); }
+    .btn-secondary {
+      width:100%; padding:12px; border:1px solid var(--border); border-radius:var(--radius-sm);
+      cursor:pointer; font-family:var(--font); font-size:.85rem; font-weight:500;
+      background:var(--bg-card); color:var(--text-primary); transition: all .2s; margin-bottom:10px;
+    }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-danger { border-color:var(--danger); color:var(--danger); }
+    .btn-danger:hover { background:var(--danger-dim); }
+    /* ===== HISTORY ===== */
+    .history-list { display:flex; flex-direction:column; gap:10px; }
+    .history-entry {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; transition: all .25s;
+    }
+    .history-entry:hover { border-color:var(--glass-border); }
+    .history-header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 16px; cursor:pointer; transition: background .2s;
+    }
+    .history-header:hover { background:var(--bg-card-hover); }
+    .history-date { font-weight:600; font-size:.9rem; }
+    .history-summary { font-size:.75rem; color:var(--text-secondary); }
+    .history-chevron { color:var(--text-muted); transition:transform .2s; font-size:.85rem; }
+    .history-entry.expanded .history-chevron { transform:rotate(180deg); }
+    .history-body { display:none; padding:0 16px 14px; border-top:1px solid var(--border); }
+    .history-entry.expanded .history-body { display:block; }
+    .history-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin:12px 0; }
+    .history-item { display:flex; justify-content:space-between; font-size:.8rem; }
+    .history-item .hi-label { color:var(--text-secondary); }
+    .history-item .hi-value { font-weight:600; }
+    .history-actions { display:flex; gap:8px; margin-top:12px; }
+    .history-actions button {
+      flex:1; padding:8px; border-radius:var(--radius-xs); font-family:var(--font);
+      font-size:.78rem; font-weight:500; cursor:pointer; transition:all .2s;
+    }
+    .ha-edit { background:var(--accent-dim); border:1px solid transparent; color:var(--accent); }
+    .ha-edit:hover { border-color:var(--accent); }
+    .ha-delete { background:var(--danger-dim); border:1px solid transparent; color:var(--danger); }
+    .ha-delete:hover { border-color:var(--danger); }
+    /* ===== SETTINGS ===== */
+    .settings-section { margin-bottom:28px; }
+    .settings-section > h3 {
+      font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;
+      letter-spacing:.08em; margin-bottom:14px;
+    }
+    .toggle-group { flex-direction:row !important; justify-content:space-between; align-items:center; }
+    .toggle-buttons { display:flex; gap:4px; background:var(--bg-input); border-radius:var(--radius-sm); padding:3px; }
+    .toggle-btn {
+      padding:8px 16px; border:none; border-radius:var(--radius-xs); cursor:pointer;
+      font-family:var(--font); font-size:.8rem; font-weight:500; color:var(--text-muted);
+      background:transparent; transition:all .2s;
+    }
+    .toggle-btn.active { background:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(0,212,255,0.3); }
+    /* ===== TOAST ===== */
+    #toast {
+      position:fixed; bottom:calc(var(--nav-h) + 16px); left:50%; transform:translateX(-50%) translateY(20px);
+      padding:12px 24px; border-radius:var(--radius-sm); font-size:.85rem; font-weight:500;
+      background:var(--bg-card); border:1px solid var(--border); color:var(--text-primary);
+      opacity:0; pointer-events:none; transition:all .3s; z-index:200;
+      backdrop-filter:blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+    #toast.success { border-color:var(--success); }
+    #toast.error { border-color:var(--danger); }
+    /* ===== CONFIRM MODAL ===== */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300;
+      display:none; align-items:center; justify-content:center; padding:24px;
+      backdrop-filter:blur(4px);
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-box {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:28px; max-width:340px; width:100%; text-align:center;
+    }
+    .modal-box h3 { font-size:1.05rem; margin-bottom:8px; }
+    .modal-box p { font-size:.85rem; color:var(--text-secondary); margin-bottom:20px; }
+    .modal-btns { display:flex; gap:10px; }
+    .modal-btns button { flex:1; padding:10px; border-radius:var(--radius-xs); font-family:var(--font); font-size:.85rem; font-weight:500; cursor:pointer; transition:all .2s; }
+    .modal-cancel { background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); }
+    .modal-confirm { background:var(--danger); border:none; color:#fff; }
+    /* ===== EMPTY STATE ===== */
+    .empty-state { text-align:center; padding:60px 20px; }
+    .empty-state svg { width:64px; height:64px; color:var(--text-muted); margin-bottom:16px; opacity:.5; }
+    .empty-state h3 { font-size:1.1rem; margin-bottom:8px; color:var(--text-secondary); }
+    .empty-state p { font-size:.85rem; color:var(--text-muted); max-width:260px; margin:0 auto; }
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    /* ===== PROFILE SETUP OVERLAY ===== */
+    #setup-overlay {
+      position:fixed; inset:0; z-index:400; background:var(--bg-primary);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px;
+    }
+    #setup-overlay.hidden { display:none; }
+    #setup-overlay h2 { font-size:1.6rem; font-weight:800; margin-bottom:6px; letter-spacing:-0.03em; }
+    #setup-overlay .setup-sub { color:var(--text-secondary); font-size:.9rem; margin-bottom:32px; }
+    #setup-overlay .setup-form { width:100%; max-width:360px; }
+    #setup-overlay .setup-form .form-group { margin-bottom:16px; }
+    /* ===== STORAGE PANEL ===== */
+    #storage-panel {
+      position:fixed; bottom: calc(var(--nav-h) + 12px); left:12px; right:12px; z-index:250;
+      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+      padding:18px 20px; box-shadow:0 -4px 32px rgba(0,0,0,0.35);
+      transform:translateY(calc(100% + var(--nav-h) + 24px)); opacity:0;
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+      display:flex; align-items:flex-start; gap:14px;
+    }
+    #storage-panel.visible { transform:translateY(0); opacity:1; }
+    #storage-panel.hidden { display:none; }
+    .sp-icon {
+      width:40px; height:40px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+    }
+    .sp-icon.granted { background:var(--success-dim); }
+    .sp-icon.denied  { background:var(--warning-dim); }
+    .sp-body { flex:1; }
+    .sp-title { font-size:.88rem; font-weight:700; margin-bottom:3px; }
+    .sp-desc  { font-size:.75rem; color:var(--text-secondary); line-height:1.5; }
+    .sp-close {
+      background:none; border:none; color:var(--text-muted); cursor:pointer;
+      font-size:1.1rem; line-height:1; flex-shrink:0; padding:4px; border-radius:6px;
+      transition:color .2s;
+    }
+    .sp-close:hover { color:var(--text-primary); }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none"><rect x="2" y="9" width="4" height="10" rx="1.5" fill="var(--accent)"/><rect x="22" y="9" width="4" height="10" rx="1.5" fill="var(--accent)"/><rect x="7" y="6" width="3" height="16" rx="1" fill="var(--text-secondary)"/><rect x="18" y="6" width="3" height="16" rx="1" fill="var(--text-secondary)"/><rect x="10" y="12" width="8" height="4" rx="1" fill="var(--accent2)"/></svg>
+      <span>Gym<span class="dot">Tracker</span></span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main id="app-content">
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page active">
+      <div class="dash-header">
+        <h2 class="page-title">Dashboard</h2>
+        <div class="days-badge" id="days-badge">No entries yet</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-card" id="card-bf">
+          <span class="label">Body Fat</span>
+          <span class="value" id="bf-value">—</span>
+          <span class="delta neutral" id="bf-delta" style="display:none"></span>
+        </div>
+        <div class="summary-card" id="card-weight">
+          <span class="label">Weight</span>
+          <span class="value" id="weight-value">—</span>
+          <span class="delta neutral" id="weight-delta" style="display:none"></span>
+        </div>
+      </div>
+      <div id="dash-growth"></div>
+      <div id="dash-loss"></div>
+      <div id="dash-neutral"></div>
+      <div id="dash-empty" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+        <h3>No data yet</h3>
+        <p>Add your first measurement entry to see your progress charts here.</p>
+      </div>
+    </section>
+
+    <!-- ADD ENTRY -->
+    <section id="page-add" class="page">
+      <h2 class="page-title" id="form-title">New Entry</h2>
+      <form id="entry-form" autocomplete="off">
+        <div class="form-section">
+          <div class="form-group" style="margin-bottom:16px">
+            <label for="entry-date">Date</label>
+            <input type="date" id="entry-date" required>
+          </div>
+        </div>
+        <div class="form-section"><h3>General</h3>
+          <div class="input-row">
+            <div class="form-group"><label>Weight</label><input type="number" step="0.1" inputmode="decimal" id="input-weight" placeholder="—"></div>
+            <div class="form-group"><label>Neck</label><input type="number" step="0.1" inputmode="decimal" id="input-neck" placeholder="—"></div>
+          </div>
+        </div>
+        <div class="form-section"><h3>Upper Body</h3>
+          <div class="input-row">
+            <div class="form-group"><label>Shoulders</label><input type="number" step="0.1" inputmode="decimal" id="input-shoulders" placeholder="—"></div>
+            <div class="form-group"><label>Chest</label><input type="number" step="0.1" inputmode="decimal" id="input-chest" placeholder="—"></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label>Bicep (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-bicepL" placeholder="—"></div>
+            <div class="form-group"><label>Bicep (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-bicepR" placeholder="—"></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label>Forearm (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-forearmL" placeholder="—"></div>
+            <div class="form-group"><label>Forearm (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-forearmR" placeholder="—"></div>
+          </div>
+        </div>
+        <div class="form-section"><h3>Core</h3>
+          <div class="input-row">
+            <div class="form-group"><label>Waist</label><input type="number" step="0.1" inputmode="decimal" id="input-waist" placeholder="—"></div>
+            <div class="form-group"><label>Hips</label><input type="number" step="0.1" inputmode="decimal" id="input-hips" placeholder="—"></div>
+          </div>
+        </div>
+        <div class="form-section"><h3>Lower Body</h3>
+          <div class="input-row">
+            <div class="form-group"><label>Quad (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadL" placeholder="—"></div>
+            <div class="form-group"><label>Quad (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadR" placeholder="—"></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label>Calf (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-calveL" placeholder="—"></div>
+            <div class="form-group"><label>Calf (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-calveR" placeholder="—"></div>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-save">Save Entry</button>
+      </form>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="page-history" class="page">
+      <h2 class="page-title">History</h2>
+      <div id="history-list" class="history-list"></div>
+      <div id="history-empty" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <h3>No entries</h3>
+        <p>Your measurement history will appear here after you log your first entry.</p>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="page-settings" class="page">
+      <h2 class="page-title">Settings</h2>
+      <div class="settings-section">
+        <h3>Profile</h3>
+        <div class="input-row">
+          <div class="form-group"><label>Height</label><input type="number" step="0.1" inputmode="decimal" id="setting-height"></div>
+          <div class="form-group"><label>Gender</label>
+            <select id="setting-gender"><option value="male">Male</option><option value="female">Female</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Preferences</h3>
+        <div class="form-group toggle-group">
+          <label>Units</label>
+          <div class="toggle-buttons" id="toggle-units">
+            <button type="button" class="toggle-btn active" data-value="metric">cm / kg</button>
+            <button type="button" class="toggle-btn" data-value="imperial">in / lbs</button>
+          </div>
+        </div>
+        <div class="form-group toggle-group" style="margin-top:14px">
+          <label>Theme</label>
+          <div class="toggle-buttons" id="toggle-theme">
+            <button type="button" class="toggle-btn active" data-value="dark">Dark</button>
+            <button type="button" class="toggle-btn" data-value="light">Light</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Data</h3>
+        <button type="button" class="btn-secondary" id="btn-export-json">⬇ Export JSON</button>
+        <button type="button" class="btn-secondary" id="btn-export-csv">⬇ Export CSV</button>
+        <button type="button" class="btn-secondary" id="btn-import-json">⬆ Import JSON</button>
+        <input type="file" id="file-import" accept=".json" hidden>
+      </div>
+      <button type="button" class="btn-primary" id="btn-save-settings">Save Settings</button>
+    </section>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-page="add">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8m-4-4h8"/></svg>
+      <span>Add</span>
+    </button>
+    <button class="nav-btn" data-page="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span>History</span>
+    </button>
+    <button class="nav-btn" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- STORAGE PANEL -->
+  <div id="storage-panel" class="hidden">
+    <div class="sp-icon" id="sp-icon"></div>
+    <div class="sp-body">
+      <div class="sp-title" id="sp-title"></div>
+      <div class="sp-desc"  id="sp-desc"></div>
+    </div>
+    <button class="sp-close" id="sp-close" aria-label="Dismiss">✕</button>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <h3 id="modal-title">Delete Entry?</h3>
+      <p id="modal-msg">This cannot be undone.</p>
+      <div class="modal-btns">
+        <button class="modal-cancel" id="modal-cancel">Cancel</button>
+        <button class="modal-confirm" id="modal-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SETUP (first launch) -->
+  <div id="setup-overlay" class="hidden">
+    <h2>Welcome 💪</h2>
+    <p class="setup-sub">Set up your profile to get started</p>
+    <div class="setup-form">
+      <div class="form-group"><label>Height</label><input type="number" step="0.1" inputmode="decimal" id="setup-height" placeholder="e.g. 175"></div>
+      <div class="form-group" style="margin-top:14px"><label>Gender</label>
+        <select id="setup-gender"><option value="male">Male</option><option value="female">Female</option></select>
+      </div>
+      <div class="form-group toggle-group" style="margin-top:14px">
+        <label>Units</label>
+        <div class="toggle-buttons" id="setup-units">
+          <button type="button" class="toggle-btn active" data-value="metric">cm / kg</button>
+          <button type="button" class="toggle-btn" data-value="imperial">in / lbs</button>
+        </div>
+      </div>
+      <button type="button" class="btn-primary" id="btn-setup-save" style="margin-top:24px">Get Started</button>
+    </div>
+  </div>
+
+  <!-- JS will be added next -->
+  <script>
+  'use strict';
+
+  // ========== CONSTANTS ==========
+  const ZONES = [
+    { key:'weight', label:'Weight', unit:'kg', unitImp:'lbs', category:'neutral', group:'General' },
+    { key:'neck', label:'Neck', unit:'cm', unitImp:'in', category:'neutral', group:'General' },
+    { key:'shoulders', label:'Shoulders', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'chest', label:'Chest', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'bicepL', label:'Bicep (L)', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'bicepR', label:'Bicep (R)', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'forearmL', label:'Forearm (L)', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'forearmR', label:'Forearm (R)', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
+    { key:'waist', label:'Waist', unit:'cm', unitImp:'in', category:'loss', group:'Core' },
+    { key:'hips', label:'Hips', unit:'cm', unitImp:'in', category:'loss', group:'Core' },
+    { key:'quadL', label:'Quad (L)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+    { key:'quadR', label:'Quad (R)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+    { key:'calveL', label:'Calf (L)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+    { key:'calveR', label:'Calf (R)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+  ];
+  const CAT_COLORS = { growth:'#00d4ff', loss:'#ffab40', neutral:'#7c5cfc' };
+  const CAT_LABELS = { growth:'📈 Growth Targets', loss:'📉 Loss Targets', neutral:'⚖️ Tracking' };
+
+  // ========== IndexedDB ==========
+  const DB = {
+    db: null, NAME: 'GymTrackerDB', VER: 1, STORE: 'entries',
+    init() {
+      return new Promise((res, rej) => {
+        const r = indexedDB.open(this.NAME, this.VER);
+        r.onerror = () => rej(r.error);
+        r.onsuccess = () => { this.db = r.result; res(); };
+        r.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.STORE))
+            db.createObjectStore(this.STORE, { keyPath:'id', autoIncrement:true }).createIndex('date','date');
+        };
+      });
+    },
+    _tx(mode) { return this.db.transaction(this.STORE, mode).objectStore(this.STORE); },
+    getAll() { return new Promise((res, rej) => { const r=this._tx('readonly').getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
+    add(e) { return new Promise((res, rej) => { const r=this._tx('readwrite').add(e); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
+    put(e) { return new Promise((res, rej) => { const r=this._tx('readwrite').put(e); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
+    del(id) { return new Promise((res, rej) => { const r=this._tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); },
+    async clear() { return new Promise((res, rej) => { const r=this._tx('readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); },
+    async importAll(arr) { const s=this._tx('readwrite'); for(const e of arr) s.put(e); return new Promise(r=>{s.transaction.oncomplete=r;}); }
+  };
+
+  // ========== PROFILE (localStorage) ==========
+  const Profile = {
+    _key: 'gymtracker_profile',
+    defaults: { height:175, gender:'male', units:'metric', theme:'dark', setupDone:false },
+    get() { try { return { ...this.defaults, ...JSON.parse(localStorage.getItem(this._key)) }; } catch { return { ...this.defaults }; } },
+    set(data) { localStorage.setItem(this._key, JSON.stringify({ ...this.get(), ...data })); },
+    isSetup() { return this.get().setupDone; }
+  };
+
+  // ========== BODY FAT (Navy) ==========
+  function calcBodyFat(entry, profile) {
+    const h = profile.height, g = profile.gender, u = profile.units;
+    let waist = entry.waist, neck = entry.neck, hips = entry.hips;
+    if (!waist || !neck || !h) return null;
+    if (g === 'female' && !hips) return null;
+    // Convert to cm if imperial
+    const toCm = v => u === 'imperial' ? v * 2.54 : v;
+    const hCm = toCm(h); const wCm = toCm(waist); const nCm = toCm(neck);
+    if (g === 'male') return Math.round((86.010 * Math.log10(wCm - nCm) - 70.041 * Math.log10(hCm) + 36.76) * 10) / 10;
+    const hipCm = toCm(hips);
+    return Math.round((163.205 * Math.log10(wCm + hipCm - nCm) - 97.684 * Math.log10(hCm) - 78.387) * 10) / 10;
+  }
+
+  // ========== NAVIGATION ==========
+  let currentPage = 'dashboard';
+  function navigateTo(page) {
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+    if (page === 'dashboard') refreshDashboard();
+    if (page === 'history') refreshHistory();
+  }
+  document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => navigateTo(b.dataset.page)));
+
+  // ========== UTILITIES ==========
+  function $(id) { return document.getElementById(id); }
+  function fmtDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
+  function daysBetween(a, b) { return Math.round(Math.abs(new Date(a) - new Date(b)) / 864e5); }
+  function unitLabel(zone) { const p = Profile.get(); return p.units === 'imperial' ? zone.unitImp : zone.unit; }
+  function showToast(msg, type='success') {
+    const t = $('toast'); t.textContent = msg; t.className = 'show ' + type;
+    clearTimeout(t._tid); t._tid = setTimeout(() => t.className = '', 2600);
+  }
+
+  // ========== CONFIRM MODAL ==========
+  let _modalResolve = null;
+  function confirmAction(title, msg) {
+    $('modal-title').textContent = title; $('modal-msg').textContent = msg;
+    $('confirm-modal').classList.add('show');
+    return new Promise(res => { _modalResolve = res; });
+  }
+  $('modal-cancel').onclick = () => { $('confirm-modal').classList.remove('show'); _modalResolve?.(false); };
+  $('modal-confirm').onclick = () => { $('confirm-modal').classList.remove('show'); _modalResolve?.(true); };
+
+  // ========== THEME ==========
+  function applyTheme(t) { document.documentElement.dataset.theme = t; }
+
+  // ========== TOGGLE BUTTONS ==========
+  document.querySelectorAll('.toggle-buttons').forEach(group => {
+    group.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+
+  // ========== SETUP OVERLAY ==========
+  $('btn-setup-save').addEventListener('click', () => {
+    const h = parseFloat($('setup-height').value);
+    if (!h || h < 50 || h > 280) { showToast('Please enter a valid height', 'error'); return; }
+    const g = $('setup-gender').value;
+    const u = $('setup-units').querySelector('.toggle-btn.active').dataset.value;
+    Profile.set({ height:h, gender:g, units:u, theme:'dark', setupDone:true });
+    $('setup-overlay').classList.add('hidden');
+    syncSettingsUI();
+    refreshDashboard();
+  });
+
+  // ========== SETTINGS PAGE ==========
+  function syncSettingsUI() {
+    const p = Profile.get();
+    $('setting-height').value = p.height;
+    $('setting-gender').value = p.gender;
+    // units toggle
+    $('toggle-units').querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.value === p.units));
+    // theme toggle
+    $('toggle-theme').querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.value === p.theme));
+    applyTheme(p.theme);
+  }
+  $('toggle-theme').addEventListener('click', e => {
+    const btn = e.target.closest('.toggle-btn'); if (!btn) return;
+    applyTheme(btn.dataset.value);
+  });
+  $('btn-save-settings').addEventListener('click', () => {
+    const h = parseFloat($('setting-height').value);
+    if (!h || h < 50 || h > 280) { showToast('Invalid height','error'); return; }
+    Profile.set({
+      height: h,
+      gender: $('setting-gender').value,
+      units: $('toggle-units').querySelector('.toggle-btn.active').dataset.value,
+      theme: $('toggle-theme').querySelector('.toggle-btn.active').dataset.value,
+    });
+    showToast('Settings saved');
+    refreshDashboard();
+  });
+
+  // ========== EXPORT / IMPORT ==========
+  $('btn-export-json').addEventListener('click', async () => {
+    const entries = await DB.getAll();
+    const blob = new Blob([JSON.stringify({ profile: Profile.get(), entries }, null, 2)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'body_stats.json'; a.click(); URL.revokeObjectURL(a.href);
+    showToast('JSON exported');
+  });
+  $('btn-export-csv').addEventListener('click', async () => {
+    const entries = (await DB.getAll()).sort((a,b) => a.date.localeCompare(b.date));
+    if (!entries.length) { showToast('No data to export','error'); return; }
+    const cols = ['date', ...ZONES.map(z=>z.key)];
+    let csv = cols.join(',') + '\n';
+    entries.forEach(e => { csv += cols.map(c => e[c] ?? '').join(',') + '\n'; });
+    const blob = new Blob([csv], { type:'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'body_stats.csv'; a.click(); URL.revokeObjectURL(a.href);
+    showToast('CSV exported');
+  });
+  $('btn-import-json').addEventListener('click', () => $('file-import').click());
+  $('file-import').addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const entries = data.entries || data;
+      if (!Array.isArray(entries)) throw new Error('Invalid format');
+      await DB.clear();
+      await DB.importAll(entries);
+      if (data.profile) Profile.set(data.profile);
+      syncSettingsUI(); refreshDashboard(); refreshHistory();
+      showToast(`Imported ${entries.length} entries`);
+    } catch (err) { showToast('Import failed: ' + err.message, 'error'); }
+    e.target.value = '';
+  });
+
+  // ========== ENTRY FORM ==========
+  let editingId = null;
+  function resetForm() {
+    editingId = null;
+    $('entry-form').reset();
+    $('entry-date').value = new Date().toISOString().split('T')[0];
+    $('form-title').textContent = 'New Entry';
+    $('btn-save').textContent = 'Save Entry';
+  }
+  function loadEntryIntoForm(entry) {
+    editingId = entry.id;
+    $('entry-date').value = entry.date;
+    ZONES.forEach(z => { const inp = $('input-' + z.key); if (inp) inp.value = entry[z.key] ?? ''; });
+    $('form-title').textContent = 'Edit Entry';
+    $('btn-save').textContent = 'Update Entry';
+    navigateTo('add');
+  }
+  $('entry-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const entry = { date: $('entry-date').value };
+    if (!entry.date) { showToast('Please select a date','error'); return; }
+    let hasValue = false;
+    ZONES.forEach(z => { const v = parseFloat($('input-' + z.key).value); if (!isNaN(v)) { entry[z.key] = v; hasValue = true; } });
+    if (!hasValue) { showToast('Enter at least one measurement','error'); return; }
+    try {
+      if (editingId) { entry.id = editingId; await DB.put(entry); showToast('Entry updated'); }
+      else { await DB.add(entry); showToast('Entry saved'); }
+      resetForm(); navigateTo('dashboard');
+    } catch (err) { showToast('Save failed','error'); }
+  });
+
+  // ========== SPARKLINE CHARTS ==========
+  const chartInstances = {};
+  function createSparkline(canvasId, labels, data, color) {
+    const canvas = document.getElementById(canvasId); if (!canvas) return;
+    if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); delete chartInstances[canvasId]; }
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, color + '30'); grad.addColorStop(1, color + '00');
+    chartInstances[canvasId] = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ data, borderColor: color, backgroundColor: grad, borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: color }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1a1f42', titleFont:{size:10,family:'Inter'}, bodyFont:{size:10,family:'Inter'}, padding:6, cornerRadius:6, displayColors:false } }, scales:{ x:{display:false}, y:{display:false} }, interaction:{ intersect:false, mode:'index' } }
+    });
+  }
+
+  // ========== DASHBOARD ==========
+  async function refreshDashboard() {
+    const entries = (await DB.getAll()).sort((a,b) => a.date.localeCompare(b.date));
+    const profile = Profile.get();
+    const latest = entries[entries.length - 1];
+    const prev = entries.length > 1 ? entries[entries.length - 2] : null;
+
+    // Days badge
+    if (latest) {
+      const days = daysBetween(latest.date, new Date().toISOString().split('T')[0]);
+      $('days-badge').textContent = days === 0 ? 'Logged today' : `${days} day${days>1?'s':''} since last entry`;
+    } else { $('days-badge').textContent = 'No entries yet'; }
+
+    // Summary cards
+    if (latest) {
+      const bf = calcBodyFat(latest, profile);
+      $('bf-value').textContent = bf !== null ? bf + '%' : '—';
+      $('weight-value').textContent = latest.weight ? latest.weight + ' ' + (profile.units==='imperial'?'lbs':'kg') : '—';
+      if (prev) {
+        showDelta('bf-delta', bf, prev ? calcBodyFat(prev, profile) : null, 'loss');
+        showDelta('weight-delta', latest.weight, prev.weight, 'neutral');
+      }
+    } else { $('bf-value').textContent = '—'; $('weight-value').textContent = '—'; }
+
+    // Sparkline sections
+    if (!entries.length) { $('dash-empty').style.display=''; $('dash-growth').innerHTML=''; $('dash-loss').innerHTML=''; $('dash-neutral').innerHTML=''; return; }
+    $('dash-empty').style.display = 'none';
+
+    const categories = { growth:[], loss:[], neutral:[] };
+    ZONES.forEach(z => categories[z.category].push(z));
+
+    for (const [cat, zones] of Object.entries(categories)) {
+      const container = $('dash-' + cat);
+      container.innerHTML = `<div class="section-label">${CAT_LABELS[cat]}</div><div class="spark-grid" id="grid-${cat}"></div>`;
+      const grid = document.getElementById('grid-' + cat);
+      zones.forEach(z => {
+        const vals = entries.map(e => e[z.key]).filter(v => v != null);
+        if (!vals.length) return;
+        const labels = entries.filter(e => e[z.key] != null).map(e => fmtDate(e.date));
+        const cur = vals[vals.length - 1];
+        const prv = vals.length > 1 ? vals[vals.length - 2] : null;
+        const cid = 'chart-' + z.key;
+        const delta = prv !== null ? cur - prv : null;
+        const deltaClass = delta === null ? '' : getDeltaClass(delta, z.category);
+        const deltaText = delta === null ? '' : (delta > 0 ? '+' : '') + delta.toFixed(1);
+        const card = document.createElement('div'); card.className = 'spark-card';
+        card.innerHTML = `
+          <div class="spark-top"><span class="spark-name">${z.label}</span><span class="spark-delta ${deltaClass}">${deltaText}</span></div>
+          <div class="spark-val">${cur} <small style="font-size:.65rem;color:var(--text-muted)">${unitLabel(z)}</small></div>
+          <div class="spark-chart"><canvas id="${cid}"></canvas></div>`;
+        grid.appendChild(card);
+        requestAnimationFrame(() => createSparkline(cid, labels, vals, CAT_COLORS[cat]));
+      });
+    }
+  }
+
+  function getDeltaClass(delta, category) {
+    if (Math.abs(delta) < 0.05) return 'neutral';
+    if (category === 'growth') return delta > 0 ? 'positive' : 'negative';
+    if (category === 'loss') return delta < 0 ? 'positive' : 'negative';
+    return delta > 0 ? 'positive' : 'negative';
+  }
+  function showDelta(id, cur, prv, category) {
+    const el = $(id); if (!cur || !prv) { el.style.display='none'; return; }
+    const d = cur - prv; const cls = getDeltaClass(d, category);
+    el.className = 'delta ' + cls;
+    el.textContent = (d > 0 ? '↑ +' : '↓ ') + Math.abs(d).toFixed(1);
+    el.style.display = '';
+  }
+
+  // ========== HISTORY ==========
+  async function refreshHistory() {
+    const entries = (await DB.getAll()).sort((a,b) => b.date.localeCompare(a.date));
+    const list = $('history-list'); list.innerHTML = '';
+    $('history-empty').style.display = entries.length ? 'none' : '';
+    const profile = Profile.get();
+    entries.forEach(entry => {
+      const div = document.createElement('div'); div.className = 'history-entry';
+      const measured = ZONES.filter(z => entry[z.key] != null);
+      const bf = calcBodyFat(entry, profile);
+      div.innerHTML = `
+        <div class="history-header" onclick="this.parentElement.classList.toggle('expanded')">
+          <div><div class="history-date">${fmtDate(entry.date)}</div>
+            <div class="history-summary">${measured.length} measurements${bf !== null ? ' · BF ' + bf + '%' : ''}</div></div>
+          <span class="history-chevron">▼</span>
+        </div>
+        <div class="history-body">
+          <div class="history-grid">${measured.map(z => `<div class="history-item"><span class="hi-label">${z.label}</span><span class="hi-value">${entry[z.key]} ${unitLabel(z)}</span></div>`).join('')}</div>
+          <div class="history-actions">
+            <button class="ha-edit" onclick="loadEntryIntoForm(${JSON.stringify(entry).replace(/"/g,'&quot;')})">Edit</button>
+            <button class="ha-delete" data-id="${entry.id}">Delete</button>
+          </div>
+        </div>`;
+      div.querySelector('.ha-delete').addEventListener('click', async () => {
+        if (await confirmAction('Delete Entry?', 'This entry from ' + fmtDate(entry.date) + ' will be permanently removed.')) {
+          await DB.del(entry.id); showToast('Entry deleted'); refreshHistory();
+        }
+      });
+      list.appendChild(div);
+    });
+  }
+
+  // ========== STORAGE PROTECTION PANEL ==========
+  async function checkStoragePersistence() {
+    // Only show once per install (track with localStorage flag)
+    if (localStorage.getItem('gymtracker_storagechecked')) return;
+    localStorage.setItem('gymtracker_storagechecked', '1');
+
+    const panel = $('storage-panel');
+    const icon  = $('sp-icon');
+    const title = $('sp-title');
+    const desc  = $('sp-desc');
+    $('sp-close').addEventListener('click', () => {
+      panel.classList.remove('visible');
+      setTimeout(() => panel.classList.add('hidden'), 400);
+    });
+
+    let granted = false;
+    if (navigator.storage && navigator.storage.persist) {
+      granted = await navigator.storage.persist();
+    }
+
+    if (granted) {
+      icon.textContent  = '🔒';
+      icon.className    = 'sp-icon granted';
+      title.textContent = 'Storage Protected';
+      desc.textContent  = 'Your data is safe from automatic eviction. Chrome will not delete it even when storage is low.';
+    } else {
+      icon.textContent  = '⚠️';
+      icon.className    = 'sp-icon denied';
+      title.textContent = 'Storage Not Persistent';
+      desc.textContent  = 'Your browser declined persistent storage. Consider exporting a JSON backup from Settings occasionally.';
+    }
+
+    panel.classList.remove('hidden');
+    // Small delay so the slide-up animation is visible
+    requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('visible')));
+  }
+
+  // ========== INIT ==========
+  async function init() {
+    await DB.init();
+    if (!Profile.isSetup()) { $('setup-overlay').classList.remove('hidden'); }
+    else { syncSettingsUI(); }
+    resetForm();
+    refreshDashboard();
+    // Register SW
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+    // Check storage persistence (shows panel on first open)
+    checkStoragePersistence();
+  }
+  init();
+  </script>
+</body>
+</html>

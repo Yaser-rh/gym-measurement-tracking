@@ -1,9 +1,9 @@
-const CACHE_NAME = 'gymtracker-v1';
+const CACHE_NAME = 'gymtracker-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
+  'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js'
 ];
 

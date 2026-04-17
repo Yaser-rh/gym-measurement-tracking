@@ -2,268 +2,412 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GymTracker — Body Analytics</title>
   <meta name="description" content="Private, cloud-free body measurement tracker with sparkline analytics and progress graphs.">
-  <meta name="theme-color" content="#00d4ff">
+  <meta name="theme-color" content="#1F2937">
   <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <style>
     /* ===== RESET & BASE ===== */
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     :root {
-      --bg-primary: #05060f; --bg-secondary: #0c0e1a; --bg-card: #12152a;
-      --bg-card-hover: #181c38; --bg-input: #0a0c1a; --bg-nav: rgba(8,10,22,0.92);
-      --border: rgba(255,255,255,0.06); --border-focus: rgba(0,212,255,0.5);
-      --text-primary: #e4e7f1; --text-secondary: #7d82a0; --text-muted: #4a4f6a;
-      --accent: #00d4ff; --accent-dim: rgba(0,212,255,0.12);
-      --accent2: #7c5cfc; --accent2-dim: rgba(124,92,252,0.12);
-      --success: #00e676; --success-dim: rgba(0,230,118,0.12);
-      --danger: #ff5252; --danger-dim: rgba(255,82,82,0.12);
-      --warning: #ffab40; --warning-dim: rgba(255,171,64,0.12);
-      --radius: 14px; --radius-sm: 10px; --radius-xs: 6px;
-      --nav-h: 68px; --header-h: 56px;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --glass: rgba(18,21,42,0.7); --glass-border: rgba(255,255,255,0.08);
+      /* Block-based Vibrant Dark Theme */
+      --bg-primary: #111827;
+      --bg-secondary: #1F2937;
+      --bg-card: #1F2937;
+      --bg-card-hover: #374151;
+      --bg-input: #111827;
+      --bg-nav: #1F2937;
+      
+      --border: #374151; /* bold contrasting line */
+      --border-focus: #F97316;
+      --border-width: 2px; /* Thick borders for geometric look */
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+
+      /* Colors from UI/UX Pro Max: Energy Orange & Success Green */
+      --accent: #F97316;
+      --accent-dim: rgba(249, 115, 22, 0.15);
+      --accent2: #FB923C;
+      --accent2-dim: rgba(251, 146, 60, 0.15);
+      
+      --success: #22C55E;
+      --success-dim: rgba(34, 197, 94, 0.15);
+      --danger: #EF4444;
+      --danger-dim: rgba(239, 68, 68, 0.15);
+      --warning: #F59E0B;
+      --warning-dim: rgba(245, 158, 11, 0.15);
+
+      --radius: 0px; /* brutalist/block-based */
+      --radius-sm: 0px;
+      --radius-xs: 0px;
+
+      --nav-h: 74px; /* Larger tap target */
+      --header-h: 64px;
+
+      --font-body: 'Barlow', system-ui, sans-serif;
+      --font-head: 'Barlow Condensed', system-ui, sans-serif;
+      --transition: 200ms ease-out;
     }
+
     [data-theme="light"] {
-      --bg-primary: #f0f2f8; --bg-secondary: #fff; --bg-card: #fff;
-      --bg-card-hover: #f4f6ff; --bg-input: #eef0f7; --bg-nav: rgba(255,255,255,0.92);
-      --border: rgba(0,0,0,0.07); --border-focus: rgba(0,150,200,0.5);
-      --text-primary: #141628; --text-secondary: #5a5f7a; --text-muted: #9aa0b8;
-      --glass: rgba(255,255,255,0.75); --glass-border: rgba(0,0,0,0.06);
+      --bg-primary: #F8FAFC;
+      --bg-secondary: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F1F5F9;
+      --bg-input: #FFFFFF;
+      --bg-nav: #FFFFFF;
+      --border: #CBD5E1;
+      --text-primary: #0F172A;
+      --text-secondary: #334155;
+      --text-muted: #64748B;
     }
-    html { font-size: 16px; }
+
+    html { font-size: 16px; background-color: var(--bg-primary); }
     body {
-      font-family: var(--font); background: var(--bg-primary); color: var(--text-primary);
+      font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary);
       min-height: 100dvh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
     }
+
     /* ===== HEADER ===== */
     #app-header {
       position: fixed; top:0; left:0; right:0; z-index:100; height: var(--header-h);
-      display:flex; align-items:center; justify-content:space-between; padding:0 20px;
-      background: var(--bg-nav); backdrop-filter: blur(20px); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; padding:0 24px;
+      background: var(--bg-nav); border-bottom: var(--border-width) solid var(--border);
     }
-    #app-header .logo { display:flex; align-items:center; gap:10px; }
-    #app-header .logo svg { width:28px; height:28px; }
-    #app-header .logo span { font-weight:700; font-size:1.15rem; letter-spacing:-0.02em; }
+    #app-header .logo { display:flex; align-items:center; gap:12px; }
+    #app-header .logo svg { width:32px; height:32px; flex-shrink:0; }
+    #app-header .logo span { font-weight:700; font-family:var(--font-head); font-size:1.6rem; letter-spacing:0.02em; text-transform:uppercase; }
     #app-header .logo .dot { color: var(--accent); }
+
     /* ===== BOTTOM NAV ===== */
     #bottom-nav {
       position:fixed; bottom:0; left:0; right:0; z-index:100; height: var(--nav-h);
       display:flex; align-items:center; justify-content:space-around;
-      background: var(--bg-nav); backdrop-filter: blur(20px);
-      border-top:1px solid var(--border); padding-bottom: env(safe-area-inset-bottom);
+      background: var(--bg-nav);
+      border-top: var(--border-width) solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     .nav-btn {
-      display:flex; flex-direction:column; align-items:center; gap:4px;
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
       background:none; border:none; color: var(--text-muted); cursor:pointer;
-      padding:8px 16px; border-radius: var(--radius-sm); transition: all .2s;
-      font-family: var(--font); font-size:.65rem; font-weight:500; letter-spacing:.03em;
+      height:100%; transition: all var(--transition);
+      font-family: var(--font-head); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;
     }
-    .nav-btn svg { width:22px; height:22px; transition: all .2s; }
-    .nav-btn.active { color: var(--accent); }
-    .nav-btn.active svg { filter: drop-shadow(0 0 6px rgba(0,212,255,0.4)); }
-    .nav-btn:hover { color: var(--text-secondary); }
+    .nav-btn svg { width:24px; height:24px; transition: all var(--transition); }
+    .nav-btn.active { color: var(--accent); background: var(--accent-dim); }
+    .nav-btn.active svg { transform:scale(1.1); }
+    .nav-btn:hover:not(.active) { color: var(--text-secondary); background: var(--bg-card-hover); }
+
     /* ===== PAGES ===== */
     main {
-      padding: calc(var(--header-h) + 16px) 16px calc(var(--nav-h) + 16px);
+      padding: calc(var(--header-h) + 24px) 20px calc(var(--nav-h) + 32px);
       max-width: 600px; margin: 0 auto;
     }
-    .page { display:none; animation: fadeIn .3s ease; }
+    .page { display:none; animation: slideUp var(--transition); }
     .page.active { display:block; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-    .page-title { font-size:1.5rem; font-weight:700; letter-spacing:-0.03em; margin-bottom:20px; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    
+    .page-title { 
+      font-family: var(--font-head); font-size:2.4rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.02em; margin-bottom:24px; line-height: 1; color: var(--accent);
+    }
+
     /* ===== DASHBOARD ===== */
-    .dash-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; }
+    .dash-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; }
     .days-badge {
-      font-size:.72rem; font-weight:500; color:var(--accent); background:var(--accent-dim);
-      padding:5px 12px; border-radius:20px; white-space:nowrap;
+      font-family: var(--font-head); font-size:0.9rem; font-weight:600; text-transform:uppercase;
+      color:var(--text-primary); background:var(--bg-card-hover);
+      padding:8px 16px; border: var(--border-width) solid var(--border); white-space:nowrap;
     }
-    .summary-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
-    .summary-card {
-      background: var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:18px; position:relative; overflow:hidden; transition: all .25s;
+    .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px; }
+    .stat-card {
+      background: var(--bg-card); border: var(--border-width) solid var(--border);
+      padding:20px; transition: all var(--transition); cursor:default;
+      box-shadow: 4px 4px 0px var(--border); display:flex; flex-direction:column;
     }
-    .summary-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    .stat-card:hover { transform:translate(-2px,-2px); box-shadow: 6px 6px 0px var(--accent); border-color: var(--accent); }
+    .stat-card .label { 
+      font-family:var(--font-head); font-size:0.95rem; color:var(--text-secondary); 
+      font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; 
     }
-    .summary-card:hover { border-color: var(--glass-border); transform:translateY(-2px); }
-    .summary-card .label { display:block; font-size:.7rem; color:var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
-    .summary-card .value { display:block; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
-    .summary-card .delta { display:inline-flex; align-items:center; gap:3px; font-size:.75rem; font-weight:600; margin-top:8px; padding:3px 8px; border-radius:6px; }
-    .delta.positive { color:var(--success); background:var(--success-dim); }
-    .delta.negative { color:var(--danger); background:var(--danger-dim); }
-    .delta.neutral { color:var(--text-muted); background:var(--border); }
+    .stat-card .value { font-size:1.9rem; font-weight:800; line-height:1; color:var(--accent); }
+    .stat-card .sub { font-size:0.8rem; color:var(--text-muted); margin-top:6px; font-weight:500; text-transform:uppercase; font-family:var(--font-head); }
+    
+    .ratings-section { margin-bottom: 32px; }
+    .rating-item { display:flex; justify-content:space-between; align-items:center; padding:12px; border:var(--border-width) solid var(--border); background:var(--bg-card); margin-bottom:12px; box-shadow: 3px 3px 0px var(--border); transition:all var(--transition); }
+    .rating-item:hover { border-color:var(--accent); box-shadow: 3px 3px 0px var(--accent); transform:translate(-2px,-2px); }
+    .rating-label { font-family:var(--font-head); font-weight:700; text-transform:uppercase; color:var(--text-primary); font-size:1.1rem; }
+    .rating-desc { font-size:0.85rem; color:var(--text-secondary); margin-top:4px; font-weight:500; }
+    .rating-badge { font-family:var(--font-head); font-weight:700; padding:6px 12px; font-size:0.85rem; text-transform:uppercase; border:var(--border-width) solid currentColor;}
+    .rating-badge.excellent { color:var(--success); background:var(--success-dim); }
+    .rating-badge.good { color:var(--accent2); background:var(--accent2-dim); }
+    .rating-badge.fair { color:var(--warning); background:var(--warning-dim); }
+    .delta.positive { color:var(--success); background:var(--success-dim); border:1px solid var(--success); }
+    .delta.negative { color:var(--danger); background:var(--danger-dim); border:1px solid var(--danger); }
+    .delta.neutral { color:var(--text-muted); background:var(--bg-input); border:1px solid var(--border); }
+
     /* ===== SPARKLINES GRID ===== */
-    .section-label { font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; margin:24px 0 12px; }
-    .spark-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .section-label { 
+      font-family:var(--font-head); font-size:1.2rem; font-weight:700; color:var(--text-primary); 
+      text-transform:uppercase; letter-spacing:0.05em; margin:40px 0 16px; 
+      padding-bottom:8px; border-bottom:var(--border-width) solid var(--border);
+    }
+    .spark-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .spark-card {
-      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:14px; transition: all .25s; cursor:default;
+      background:var(--bg-card); border:var(--border-width) solid var(--border);
+      padding:16px; transition: all var(--transition); cursor:default;
+      box-shadow: 3px 3px 0px var(--border);
     }
-    .spark-card:hover { border-color:var(--glass-border); transform:translateY(-2px); }
-    .spark-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
-    .spark-name { font-size:.72rem; font-weight:500; color:var(--text-secondary); }
-    .spark-val { font-size:1.1rem; font-weight:700; letter-spacing:-0.02em; }
-    .spark-delta { font-size:.65rem; font-weight:600; }
-    .spark-chart { height:48px; margin-top:6px; }
+    .spark-card:hover { transform:translate(-2px,-2px); box-shadow: 5px 5px 0px var(--accent); border-color:var(--accent); }
+    .spark-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+    .spark-name { font-family:var(--font-head); font-size:1rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; }
+    .spark-val { font-size:1.25rem; font-weight:700; }
+    .spark-delta { font-size:0.8rem; font-weight:700; font-family:var(--font-head); }
+    .spark-chart { height:48px; margin-top:12px; }
+
     /* ===== FORMS ===== */
-    .form-section { margin-bottom:24px; }
+    .form-section { margin-bottom:32px; background:var(--bg-card); padding:20px; border:var(--border-width) solid var(--border); box-shadow:4px 4px 0px var(--border); }
     .form-section h3 {
-      font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;
-      letter-spacing:.08em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);
+      font-family:var(--font-head); font-size:1.1rem; font-weight:700; color:var(--accent); 
+      text-transform:uppercase; letter-spacing:0.05em; margin-bottom:16px; 
     }
-    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
-    .form-group { display:flex; flex-direction:column; gap:6px; }
-    .form-group label { font-size:.75rem; font-weight:500; color:var(--text-secondary); }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .form-group { display:flex; flex-direction:column; gap:8px; }
+    .form-group label { font-family:var(--font-head); font-size:0.95rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; }
     .form-group input, .form-group select {
-      background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm);
-      padding:12px 14px; color:var(--text-primary); font-family:var(--font); font-size:.9rem;
-      transition: all .2s; outline:none; width:100%;
+      background:var(--bg-input); border:var(--border-width) solid var(--border);
+      padding:14px 16px; color:var(--text-primary); font-family:var(--font-body); font-size:1rem; font-weight:600;
+      transition: all var(--transition); outline:none; width:100%; height:48px;
     }
-    .form-group input:focus, .form-group select:focus { border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-dim); }
-    .form-group input::placeholder { color:var(--text-muted); }
-    .form-group.full { grid-column: 1 / -1; }
+    .form-group input:focus, .form-group select:focus { border-color:var(--accent); box-shadow: 3px 3px 0px var(--accent); transform:translate(-1px,-1px); }
+    .form-group input::placeholder { color:var(--text-muted); font-weight:400; }
+
     /* ===== BUTTONS ===== */
     .btn-primary {
-      width:100%; padding:14px; border:none; border-radius:var(--radius-sm); cursor:pointer;
-      font-family:var(--font); font-size:.9rem; font-weight:600; letter-spacing:-0.01em;
-      background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff;
-      transition: all .25s; position:relative; overflow:hidden;
+      width:100%; padding:16px; border:var(--border-width) solid transparent; cursor:pointer;
+      font-family:var(--font-head); font-size:1.2rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;
+      background:var(--accent); color:#fff; transition: all 150ms ease;
+      box-shadow: 4px 4px 0px var(--accent2); margin-top:16px; height:56px;
     }
-    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,212,255,0.25); }
-    .btn-primary:active { transform:scale(0.98); }
+    .btn-primary:active { transform:translate(4px,4px); box-shadow: 0px 0px 0px var(--accent2); }
+    
     .btn-secondary {
-      width:100%; padding:12px; border:1px solid var(--border); border-radius:var(--radius-sm);
-      cursor:pointer; font-family:var(--font); font-size:.85rem; font-weight:500;
-      background:var(--bg-card); color:var(--text-primary); transition: all .2s; margin-bottom:10px;
+      width:100%; padding:14px; border:var(--border-width) solid var(--border);
+      cursor:pointer; font-family:var(--font-head); font-size:1.1rem; font-weight:600; text-transform:uppercase;
+      background:var(--bg-card); color:var(--text-primary); transition: all 150ms; margin-bottom:12px; height:52px;
+      box-shadow: 3px 3px 0px var(--border);
     }
-    .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
-    .btn-danger { border-color:var(--danger); color:var(--danger); }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--accent); box-shadow:3px 3px 0px var(--accent); }
+    .btn-secondary:active { transform:translate(3px,3px); box-shadow: 0px 0px 0px var(--accent); }
+    
+    .btn-danger { border-color:var(--danger); color:var(--danger); box-shadow:3px 3px 0px var(--danger); }
     .btn-danger:hover { background:var(--danger-dim); }
+
     /* ===== HISTORY ===== */
-    .history-list { display:flex; flex-direction:column; gap:10px; }
+    .history-list { display:flex; flex-direction:column; gap:16px; }
     .history-entry {
-      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      overflow:hidden; transition: all .25s;
+      background:var(--bg-card); border:var(--border-width) solid var(--border);
+      transition: all var(--transition); box-shadow:4px 4px 0px var(--border);
     }
-    .history-entry:hover { border-color:var(--glass-border); }
+    .history-entry:hover { border-color:var(--accent); box-shadow:4px 4px 0px var(--accent); }
     .history-header {
       display:flex; justify-content:space-between; align-items:center;
-      padding:14px 16px; cursor:pointer; transition: background .2s;
+      padding:20px; cursor:pointer; background:var(--bg-card);
     }
-    .history-header:hover { background:var(--bg-card-hover); }
-    .history-date { font-weight:600; font-size:.9rem; }
-    .history-summary { font-size:.75rem; color:var(--text-secondary); }
-    .history-chevron { color:var(--text-muted); transition:transform .2s; font-size:.85rem; }
-    .history-entry.expanded .history-chevron { transform:rotate(180deg); }
-    .history-body { display:none; padding:0 16px 14px; border-top:1px solid var(--border); }
-    .history-entry.expanded .history-body { display:block; }
-    .history-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin:12px 0; }
-    .history-item { display:flex; justify-content:space-between; font-size:.8rem; }
-    .history-item .hi-label { color:var(--text-secondary); }
-    .history-item .hi-value { font-weight:600; }
-    .history-actions { display:flex; gap:8px; margin-top:12px; }
+    .history-date { font-family:var(--font-head); font-weight:700; font-size:1.2rem; text-transform:uppercase; color:var(--accent); }
+    .history-summary { font-size:0.85rem; color:var(--text-secondary); font-weight:500; margin-top:4px; }
+    .history-chevron { color:var(--text-muted); transition:transform var(--transition); font-size:1rem; }
+    .history-entry.expanded .history-chevron { transform:rotate(180deg); color:var(--accent); }
+    
+    .history-body { display:none; padding:0 20px 20px; border-top:var(--border-width) dashed var(--border); margin-top:4px; }
+    .history-entry.expanded .history-body { display:block; padding-top:20px; }
+    .history-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; margin-bottom:20px; }
+    .history-item { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:6px; }
+    .history-item .hi-label { font-family:var(--font-head); color:var(--text-secondary); font-weight:600; text-transform:uppercase; font-size:0.95rem; }
+    .history-item .hi-value { font-weight:700; font-size:1.05rem; }
+    
+    .history-actions { display:flex; gap:12px; }
     .history-actions button {
-      flex:1; padding:8px; border-radius:var(--radius-xs); font-family:var(--font);
-      font-size:.78rem; font-weight:500; cursor:pointer; transition:all .2s;
+      flex:1; padding:12px; font-family:var(--font-head); font-size:1rem; font-weight:700; text-transform:uppercase;
+      cursor:pointer; transition:all 150ms; border:var(--border-width) solid transparent; height:44px;
     }
-    .ha-edit { background:var(--accent-dim); border:1px solid transparent; color:var(--accent); }
-    .ha-edit:hover { border-color:var(--accent); }
-    .ha-delete { background:var(--danger-dim); border:1px solid transparent; color:var(--danger); }
-    .ha-delete:hover { border-color:var(--danger); }
+    .ha-edit { background:var(--accent-dim); color:var(--accent); border-color:var(--accent); box-shadow:2px 2px 0px var(--accent); }
+    .ha-edit:active { transform:translate(2px,2px); box-shadow:none; }
+    .ha-delete { background:var(--danger-dim); color:var(--danger); border-color:var(--danger); box-shadow:2px 2px 0px var(--danger); }
+    .ha-delete:active { transform:translate(2px,2px); box-shadow:none; }
+
     /* ===== SETTINGS ===== */
-    .settings-section { margin-bottom:28px; }
+    .settings-section { margin-bottom:32px; background:var(--bg-card); padding:24px 20px; border:var(--border-width) solid var(--border); box-shadow:4px 4px 0px var(--border); }
     .settings-section > h3 {
-      font-size:.72rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;
-      letter-spacing:.08em; margin-bottom:14px;
+      font-family:var(--font-head); font-size:1.2rem; font-weight:700; color:var(--accent); text-transform:uppercase;
+      letter-spacing:0.05em; margin-bottom:20px; padding-bottom:12px; border-bottom:var(--border-width) solid var(--border);
     }
-    .toggle-group { flex-direction:row !important; justify-content:space-between; align-items:center; }
-    .toggle-buttons { display:flex; gap:4px; background:var(--bg-input); border-radius:var(--radius-sm); padding:3px; }
+    .toggle-group { flex-direction:column !important; align-items:stretch; gap:12px; }
+    .toggle-buttons { display:flex; background:var(--bg-input); border:var(--border-width) solid var(--border); padding:4px; height:48px; }
     .toggle-btn {
-      padding:8px 16px; border:none; border-radius:var(--radius-xs); cursor:pointer;
-      font-family:var(--font); font-size:.8rem; font-weight:500; color:var(--text-muted);
-      background:transparent; transition:all .2s;
+      flex:1; padding:0; border:none; background:transparent; cursor:pointer;
+      font-family:var(--font-head); font-size:1.05rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;
+      transition:all var(--transition);
     }
-    .toggle-btn.active { background:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(0,212,255,0.3); }
+    .toggle-btn.active { background:var(--accent); color:#fff; }
+
     /* ===== TOAST ===== */
     #toast {
-      position:fixed; bottom:calc(var(--nav-h) + 16px); left:50%; transform:translateX(-50%) translateY(20px);
-      padding:12px 24px; border-radius:var(--radius-sm); font-size:.85rem; font-weight:500;
-      background:var(--bg-card); border:1px solid var(--border); color:var(--text-primary);
-      opacity:0; pointer-events:none; transition:all .3s; z-index:200;
-      backdrop-filter:blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      position:fixed; bottom:calc(var(--nav-h) + 24px); left:50%; transform:translateX(-50%) translateY(20px);
+      padding:16px 24px; font-family:var(--font-head); font-size:1.1rem; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;
+      background:var(--bg-card); border:var(--border-width) solid var(--accent); color:var(--text-primary);
+      opacity:0; pointer-events:none; transition:all var(--transition); z-index:200;
+      box-shadow: 4px 4px 0px var(--accent);
     }
     #toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
-    #toast.success { border-color:var(--success); }
-    #toast.error { border-color:var(--danger); }
+    #toast.success { border-color:var(--success); box-shadow: 4px 4px 0px var(--success); }
+    #toast.error { border-color:var(--danger); box-shadow: 4px 4px 0px var(--danger); }
+
     /* ===== CONFIRM MODAL ===== */
     .modal-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300;
+      position:fixed; inset:0; background:rgba(17, 24, 39, 0.85); z-index:300;
       display:none; align-items:center; justify-content:center; padding:24px;
-      backdrop-filter:blur(4px);
     }
     .modal-overlay.show { display:flex; }
     .modal-box {
-      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:28px; max-width:340px; width:100%; text-align:center;
+      background:var(--bg-card); border:var(--border-width) solid var(--accent); 
+      padding:32px; max-width:340px; width:100%; text-align:center;
+      box-shadow: 8px 8px 0px var(--accent);
     }
-    .modal-box h3 { font-size:1.05rem; margin-bottom:8px; }
-    .modal-box p { font-size:.85rem; color:var(--text-secondary); margin-bottom:20px; }
-    .modal-btns { display:flex; gap:10px; }
-    .modal-btns button { flex:1; padding:10px; border-radius:var(--radius-xs); font-family:var(--font); font-size:.85rem; font-weight:500; cursor:pointer; transition:all .2s; }
-    .modal-cancel { background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); }
-    .modal-confirm { background:var(--danger); border:none; color:#fff; }
+    .modal-box h3 { font-family:var(--font-head); font-size:1.5rem; text-transform:uppercase; margin-bottom:12px; color:var(--danger); }
+    .modal-box p { font-size:1rem; color:var(--text-secondary); margin-bottom:24px; font-weight:500; }
+    .modal-btns { display:flex; gap:16px; }
+    .modal-btns button { 
+      flex:1; height:48px; font-family:var(--font-head); font-size:1.1rem; font-weight:700; text-transform:uppercase; 
+      cursor:pointer; transition:all 150ms; border:var(--border-width) solid transparent; 
+    }
+    .modal-cancel { background:var(--bg-input); border-color:var(--border); color:var(--text-primary); box-shadow:3px 3px 0px var(--border); }
+    .modal-cancel:active { transform:translate(3px,3px); box-shadow:none; }
+    .modal-confirm { background:var(--danger); color:#fff; border-color:var(--danger); box-shadow:3px 3px 0px rgba(239, 68, 68, 0.5); }
+    .modal-confirm:active { transform:translate(3px,3px); box-shadow:none; }
+
     /* ===== EMPTY STATE ===== */
-    .empty-state { text-align:center; padding:60px 20px; }
-    .empty-state svg { width:64px; height:64px; color:var(--text-muted); margin-bottom:16px; opacity:.5; }
-    .empty-state h3 { font-size:1.1rem; margin-bottom:8px; color:var(--text-secondary); }
-    .empty-state p { font-size:.85rem; color:var(--text-muted); max-width:260px; margin:0 auto; }
+    .empty-state { text-align:center; padding:80px 20px; border:var(--border-width) dashed var(--border); margin:20px 0; background:var(--bg-card); }
+    .empty-state svg { width:72px; height:72px; color:var(--text-muted); margin-bottom:24px; opacity:0.3; }
+    .empty-state h3 { font-family:var(--font-head); font-size:1.5rem; text-transform:uppercase; margin-bottom:12px; color:var(--text-primary); }
+    .empty-state p { font-size:1rem; color:var(--text-muted); max-width:280px; margin:0 auto; font-weight:500; }
+
     /* ===== SCROLLBAR ===== */
-    ::-webkit-scrollbar { width:4px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-track { background:var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:0px; border:1px solid var(--bg-primary); }
+
     /* ===== PROFILE SETUP OVERLAY ===== */
     #setup-overlay {
       position:fixed; inset:0; z-index:400; background:var(--bg-primary);
       display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px;
     }
     #setup-overlay.hidden { display:none; }
-    #setup-overlay h2 { font-size:1.6rem; font-weight:800; margin-bottom:6px; letter-spacing:-0.03em; }
-    #setup-overlay .setup-sub { color:var(--text-secondary); font-size:.9rem; margin-bottom:32px; }
+    #setup-overlay h2 { font-family:var(--font-head); font-size:3rem; font-weight:800; margin-bottom:8px; text-transform:uppercase; color:var(--accent); }
+    #setup-overlay .setup-sub { color:var(--text-secondary); font-size:1.1rem; font-weight:500; margin-bottom:40px; }
     #setup-overlay .setup-form { width:100%; max-width:360px; }
-    #setup-overlay .setup-form .form-group { margin-bottom:16px; }
+    #setup-overlay .setup-form .form-group { margin-bottom:20px; }
+
     /* ===== STORAGE PANEL ===== */
     #storage-panel {
-      position:fixed; bottom: calc(var(--nav-h) + 12px); left:12px; right:12px; z-index:250;
-      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-      padding:18px 20px; box-shadow:0 -4px 32px rgba(0,0,0,0.35);
-      transform:translateY(calc(100% + var(--nav-h) + 24px)); opacity:0;
-      transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
-      display:flex; align-items:flex-start; gap:14px;
+      position:fixed; bottom: calc(var(--nav-h) + 16px); left:16px; right:16px; z-index:250;
+      background:var(--bg-card); border:var(--border-width) solid var(--border);
+      padding:24px 20px; box-shadow: 6px 6px 0px var(--border);
+      transform:translateY(calc(100% + var(--nav-h) + 32px)); opacity:0;
+      transition: transform 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 300ms ease;
+      display:flex; align-items:flex-start; gap:16px;
     }
     #storage-panel.visible { transform:translateY(0); opacity:1; }
     #storage-panel.hidden { display:none; }
     .sp-icon {
-      width:40px; height:40px; border-radius:10px; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+      width:48px; height:48px; border:var(--border-width) solid var(--border); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:1.4rem;
     }
-    .sp-icon.granted { background:var(--success-dim); }
-    .sp-icon.denied  { background:var(--warning-dim); }
+    .sp-icon.granted { background:var(--success-dim); border-color:var(--success); color:var(--success); box-shadow:2px 2px 0px var(--success); }
+    .sp-icon.denied  { background:var(--warning-dim); border-color:var(--warning); color:var(--warning); box-shadow:2px 2px 0px var(--warning); }
     .sp-body { flex:1; }
-    .sp-title { font-size:.88rem; font-weight:700; margin-bottom:3px; }
-    .sp-desc  { font-size:.75rem; color:var(--text-secondary); line-height:1.5; }
+    .sp-title { font-family:var(--font-head); font-size:1.1rem; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--text-primary); }
+    .sp-desc  { font-size:0.9rem; color:var(--text-secondary); line-height:1.4; font-weight:500; }
     .sp-close {
-      background:none; border:none; color:var(--text-muted); cursor:pointer;
-      font-size:1.1rem; line-height:1; flex-shrink:0; padding:4px; border-radius:6px;
-      transition:color .2s;
+      background:var(--bg-input); border:var(--border-width) solid var(--border); color:var(--text-primary); cursor:pointer;
+      width:32px; height:32px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-weight:700;
+      transition:all var(--transition); box-shadow:2px 2px 0px var(--border);
     }
-    .sp-close:hover { color:var(--text-primary); }
+    .sp-close:active { transform:translate(2px,2px); box-shadow:none; }
+
+    /* Animation for demo mode */
+    @keyframes demoPulse {
+      0% { border-color: var(--border); }
+      50% { border-color: var(--warning); box-shadow: 0 0 10px var(--warning-dim); }
+      100% { border-color: var(--border); }
+    }
+    .demo-pulse { animation: demoPulse 2s infinite; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      main { padding: calc(var(--header-h) + 16px) 16px calc(var(--nav-h) + 24px); }
+      .page-title { font-size: 2rem; }
+      .summary-grid, .spark-grid, .input-row, .history-grid, .modal-btns { grid-template-columns: 1fr; }
+      .stat-card { padding: 16px; }
+      .stat-card .value { font-size: 1.6rem; }
+      .form-section { padding: 16px; }
+      #app-header { padding: 0 16px; }
+      #app-header .logo span { font-size: 1.3rem; }
+      .nav-btn { font-size: 0.75rem; gap: 4px; }
+      canvas { max-width: 100% !important; }
+      .dash-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .days-badge { white-space: normal; width: auto; font-size: 0.8rem; }
+      .history-header { padding: 16px; }
+      .history-body { padding: 0 16px 16px; }
+      .history-grid { gap: 8px; }
+      .history-actions { flex-direction: column; }
+      #setup-overlay h2 { font-size: 2.2rem; }
+    }
+
+    /* ===== HEATMAP & VOLUME ===== */
+    .growth-visuals { margin-bottom: 40px; }
+    .volume-banner {
+      background: var(--success); color: #fff; padding: 16px; 
+      font-family: var(--font-head); font-size: 1.3rem; font-weight: 800;
+      text-transform: uppercase; text-align: center; border: var(--border-width) solid var(--bg-primary);
+      box-shadow: 4px 4px 0px var(--border); margin-bottom: 24px;
+    }
+    .analytics-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .predictions-list { display: flex; flex-direction: column; gap: 12px; }
+    
+    /* ===== INFO BUTTONS & MODALS ===== */
+    .info-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%; background: var(--accent-dim);
+      color: var(--accent); border: 1px solid var(--accent); font-size: 11px; font-weight: 800;
+      cursor: pointer; margin-left: 6px; vertical-align: middle; transition: all var(--transition);
+    }
+    .info-btn:hover { background: var(--accent); color: #fff; }
+    
+    .demo-banner {
+      background: var(--warning-dim); color: var(--warning); border: var(--border-width) solid var(--warning);
+      padding: 12px; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 20px;
+      text-transform: uppercase; letter-spacing: 0.05em; display: none;
+    }
+    .prediction-card {
+      background: var(--bg-card); border: var(--border-width) solid var(--border);
+      padding: 16px; box-shadow: 3px 3px 0px var(--border);
+    }
+    .pred-goal { font-family: var(--font-head); font-weight: 700; text-transform: uppercase; color: var(--accent); }
+    .pred-eta { font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; font-weight: 600; }
+    
+    @media (max-width: 600px) {
+      .analytics-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -280,21 +424,48 @@
 
     <!-- DASHBOARD -->
     <section id="page-dashboard" class="page active">
+      <div class="demo-banner" id="demo-banner">
+        ⚠️ Preview Mode: Data will NOT be saved. Install app to enable persistence.
+      </div>
       <div class="dash-header">
         <h2 class="page-title">Dashboard</h2>
         <div class="days-badge" id="days-badge">No entries yet</div>
       </div>
-      <div class="summary-row">
-        <div class="summary-card" id="card-bf">
-          <span class="label">Body Fat</span>
-          <span class="value" id="bf-value">—</span>
-          <span class="delta neutral" id="bf-delta" style="display:none"></span>
-        </div>
-        <div class="summary-card" id="card-weight">
-          <span class="label">Weight</span>
+      <div class="summary-grid">
+        <div class="stat-card" id="card-weight">
+          <span class="label">Weight <button class="info-btn" data-info="weight">!</button></span>
           <span class="value" id="weight-value">—</span>
-          <span class="delta neutral" id="weight-delta" style="display:none"></span>
+          <span class="sub" id="stat-weight-sub"></span>
         </div>
+        <div class="stat-card" id="card-bf">
+          <span class="label">Body Fat <button class="info-btn" data-info="bf">!</button></span>
+          <span class="value" id="bf-value">—</span>
+          <span class="sub" id="stat-bf-sub">Navy Method</span>
+        </div>
+        <div class="stat-card" id="card-wthr">
+          <span class="label">WtHR <button class="info-btn" data-info="wthr">!</button></span>
+          <span class="value" id="wthr-value">—</span>
+          <span class="sub" id="stat-wthr-sub">Waist-to-Height</span>
+        </div>
+        <div class="stat-card" id="card-ffmi">
+          <span class="label">FFMI <button class="info-btn" data-info="ffmi">!</button></span>
+          <span class="value" id="ffmi-value">—</span>
+          <span class="sub" id="stat-ffmi-sub">Fat Free Mass</span>
+        </div>
+      </div>
+
+      <!-- Growth Visuals -->
+      <div id="growth-visuals" class="growth-visuals" style="display:none">
+        <div class="volume-banner" id="volume-banner">You've added 0 cm to your frame this month!</div>
+        <div class="predictions-container">
+          <h3 class="section-label" style="margin-top:0">Milestone Predictions</h3>
+          <div id="predictions-list" class="predictions-list"></div>
+        </div>
+      </div>
+
+      <div id="ratings-section" class="ratings-section" style="display:none">
+        <h3 class="section-label" style="margin-top:0">Proportions & Ratings</h3>
+        <div id="ratings-list"></div>
       </div>
       <div id="dash-growth"></div>
       <div id="dash-loss"></div>
@@ -308,12 +479,30 @@
 
     <!-- ADD ENTRY -->
     <section id="page-add" class="page">
-      <h2 class="page-title" id="form-title">New Entry</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <h2 class="page-title" id="form-title" style="margin:0">New Entry</h2>
+        <button type="button" class="btn-secondary" id="btn-guide" style="width:auto; height:36px; padding:0 16px; margin:0; font-size:0.9rem;">📏 Guide</button>
+      </div>
       <form id="entry-form" autocomplete="off">
         <div class="form-section">
           <div class="form-group" style="margin-bottom:16px">
             <label for="entry-date">Date</label>
             <input type="date" id="entry-date" required>
+          </div>
+          <div class="form-group toggle-group" style="margin-top:14px">
+            <label>Measurement State</label>
+            <div class="toggle-buttons" id="entry-state">
+              <button type="button" class="toggle-btn active" data-value="cold">Cold</button>
+              <button type="button" class="toggle-btn" data-value="pumped">Pumped</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label>Progress Photo</label>
+            <input type="file" id="entry-photo" accept="image/*" style="background:var(--bg-input); border:var(--border-width) solid var(--border); padding:10px; color:var(--text-primary); width:100%;">
+            <input type="hidden" id="entry-photo-data">
+            <div id="photo-preview" style="margin-top:8px; display:none; border:var(--border-width) solid var(--border);">
+               <img src="" id="photo-preview-img" style="width:100%; height:auto; object-fit:cover;">
+            </div>
           </div>
         </div>
         <div class="form-section"><h3>General</h3>
@@ -344,8 +533,8 @@
         </div>
         <div class="form-section"><h3>Lower Body</h3>
           <div class="input-row">
-            <div class="form-group"><label>Quad (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadL" placeholder="—"></div>
-            <div class="form-group"><label>Quad (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadR" placeholder="—"></div>
+            <div class="form-group"><label>Thigh (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadL" placeholder="—"></div>
+            <div class="form-group"><label>Thigh (R)</label><input type="number" step="0.1" inputmode="decimal" id="input-quadR" placeholder="—"></div>
           </div>
           <div class="input-row">
             <div class="form-group"><label>Calf (L)</label><input type="number" step="0.1" inputmode="decimal" id="input-calveL" placeholder="—"></div>
@@ -375,8 +564,28 @@
         <div class="input-row">
           <div class="form-group"><label>Height</label><input type="number" step="0.1" inputmode="decimal" id="setting-height"></div>
           <div class="form-group"><label>Gender</label>
-            <select id="setting-gender"><option value="male">Male</option><option value="female">Female</option></select>
+            <select id="setting-gender" style="background:var(--bg-input); border:var(--border-width) solid var(--border); padding:14px 16px; color:var(--text-primary); font-family:var(--font-body); font-size:1rem; font-weight:600; width:100%; height:48px;"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
           </div>
+        </div>
+        <div class="input-row" style="margin-top:16px">
+          <div class="form-group"><label>Wrist Circ.</label><input type="number" step="0.1" inputmode="decimal" id="setting-wrist"></div>
+          <div class="form-group"><label>Ankle Circ.</label><input type="number" step="0.1" inputmode="decimal" id="setting-ankle"></div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label>Physique Goal</label>
+          <select id="setting-goal" style="height:48px; padding-left:12px; background:var(--bg-input); border:var(--border-width) solid var(--border); color:var(--text-primary); font-size:1rem; font-weight:600; width:100%;"><option value="aesthetic">Aesthetic</option><option value="power">Power/Strength</option><option value="lean">Lean/Model</option></select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Measurement Targets <button class="info-btn" data-info="ffmi" title="Why set targets?">!</button></h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Set specific goals for milestone predictions.</p>
+        <div class="input-row">
+          <div class="form-group"><label>Chest Target</label><input type="number" step="0.1" id="target-chest" placeholder="e.g. 110"></div>
+          <div class="form-group"><label>Bicep Target</label><input type="number" step="0.1" id="target-biceps" placeholder="e.g. 40"></div>
+        </div>
+        <div class="input-row" style="margin-top:16px">
+          <div class="form-group"><label>Thigh Target</label><input type="number" step="0.1" id="target-thighs" placeholder="e.g. 65"></div>
+          <div class="form-group"><label>Waist Target</label><input type="number" step="0.1" id="target-waist" placeholder="e.g. 80"></div>
         </div>
       </div>
       <div class="settings-section">
@@ -440,6 +649,35 @@
   <!-- TOAST -->
   <div id="toast"></div>
 
+  <!-- GUIDE MODAL -->
+  <div class="modal-overlay" id="guide-modal">
+    <div class="modal-box" style="text-align:left; max-width:400px; max-height:85vh; padding:24px; display:flex; flex-direction:column;">
+      <h3 style="color:var(--accent); font-size:1.4rem; border-bottom:var(--border-width) solid var(--border); padding-bottom:12px; margin-bottom:16px; text-transform:uppercase; font-family:var(--font-head); font-weight:700;">Measurement Guide</h3>
+      <div style="font-size:0.95rem; color:var(--text-secondary); line-height:1.6; overflow-y:auto; padding-right:8px; font-weight:500;">
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Weight:</strong> Morning, empty stomach, after bathroom.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Neck:</strong> Just below Adam's apple, relaxed.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Shoulders:</strong> Widest point over deltoids, arms down.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Chest:</strong> Nipple line, relaxed exhale.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Biceps:</strong> Flexed hard, thickest point.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Forearms:</strong> Flexed hard, thickest point.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Waist:</strong> Across navel (belly button), relaxed exhale.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Hips:</strong> Thickest part of glutes/buttocks.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Quads:</strong> Flexed, highest point of thigh.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">Calves:</strong> Flexed (standing or seated), thickest point.</p>
+      </div>
+      <button class="btn-primary" style="margin-top:20px; height:48px;" onclick="document.getElementById('guide-modal').classList.remove('show')">Got It</button>
+    </div>
+  </div>
+
+  <!-- INFO MODAL -->
+  <div class="modal-overlay" id="info-modal">
+    <div class="modal-box">
+      <h3 id="info-title">Metric Info</h3>
+      <p id="info-msg" style="text-align:left; line-height:1.6;"></p>
+      <button class="btn-primary" style="margin-top:20px;height:48px;" onclick="$('info-modal').classList.remove('show')">Got It</button>
+    </div>
+  </div>
+
   <!-- CONFIRM MODAL -->
   <div class="modal-overlay" id="confirm-modal">
     <div class="modal-box">
@@ -457,9 +695,19 @@
     <h2>Welcome 💪</h2>
     <p class="setup-sub">Set up your profile to get started</p>
     <div class="setup-form">
-      <div class="form-group"><label>Height</label><input type="number" step="0.1" inputmode="decimal" id="setup-height" placeholder="e.g. 175"></div>
-      <div class="form-group" style="margin-top:14px"><label>Gender</label>
-        <select id="setup-gender"><option value="male">Male</option><option value="female">Female</option></select>
+      <div class="input-row">
+        <div class="form-group"><label>Height</label><input type="number" step="0.1" inputmode="decimal" id="setup-height" placeholder="e.g. 175"></div>
+        <div class="form-group"><label>Gender</label>
+          <select id="setup-gender" style="height:48px; background:var(--bg-input); border:var(--border-width) solid var(--border); color:var(--text-primary); font-size:1rem; font-weight:600;"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+        </div>
+      </div>
+      <div class="input-row" style="margin-top:14px">
+        <div class="form-group"><label>Wrist Circ.</label><input type="number" step="0.1" inputmode="decimal" id="setup-wrist" placeholder="e.g. 17"></div>
+        <div class="form-group"><label>Ankle Circ.</label><input type="number" step="0.1" inputmode="decimal" id="setup-ankle" placeholder="e.g. 22"></div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <label>Physique Goal</label>
+        <select id="setup-goal" style="height:48px; padding-left:12px; background:var(--bg-input); border:var(--border-width) solid var(--border); color:var(--text-primary); font-size:1rem; font-weight:600; width:100%;"><option value="aesthetic">Aesthetic</option><option value="power">Power/Strength</option><option value="lean">Lean/Model</option></select>
       </div>
       <div class="form-group toggle-group" style="margin-top:14px">
         <label>Units</label>
@@ -476,7 +724,7 @@
   <script>
   'use strict';
 
-  // ========== CONSTANTS ==========
+  // ========== MEASUREMENT ZONES ==========
   const ZONES = [
     { key:'weight', label:'Weight', unit:'kg', unitImp:'lbs', category:'neutral', group:'General' },
     { key:'neck', label:'Neck', unit:'cm', unitImp:'in', category:'neutral', group:'General' },
@@ -488,59 +736,285 @@
     { key:'forearmR', label:'Forearm (R)', unit:'cm', unitImp:'in', category:'growth', group:'Upper Body' },
     { key:'waist', label:'Waist', unit:'cm', unitImp:'in', category:'loss', group:'Core' },
     { key:'hips', label:'Hips', unit:'cm', unitImp:'in', category:'loss', group:'Core' },
-    { key:'quadL', label:'Quad (L)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
-    { key:'quadR', label:'Quad (R)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+    { key:'quadL', label:'Thigh (L)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
+    { key:'quadR', label:'Thigh (R)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
     { key:'calveL', label:'Calf (L)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
     { key:'calveR', label:'Calf (R)', unit:'cm', unitImp:'in', category:'growth', group:'Lower Body' },
   ];
-  const CAT_COLORS = { growth:'#00d4ff', loss:'#ffab40', neutral:'#7c5cfc' };
-  const CAT_LABELS = { growth:'📈 Growth Targets', loss:'📉 Loss Targets', neutral:'⚖️ Tracking' };
 
-  // ========== IndexedDB ==========
-  const DB = {
-    db: null, NAME: 'GymTrackerDB', VER: 1, STORE: 'entries',
-    init() {
-      return new Promise((res, rej) => {
-        const r = indexedDB.open(this.NAME, this.VER);
-        r.onerror = () => rej(r.error);
-        r.onsuccess = () => { this.db = r.result; res(); };
-        r.onupgradeneeded = e => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(this.STORE))
-            db.createObjectStore(this.STORE, { keyPath:'id', autoIncrement:true }).createIndex('date','date');
-        };
-      });
-    },
-    _tx(mode) { return this.db.transaction(this.STORE, mode).objectStore(this.STORE); },
-    getAll() { return new Promise((res, rej) => { const r=this._tx('readonly').getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
-    add(e) { return new Promise((res, rej) => { const r=this._tx('readwrite').add(e); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
-    put(e) { return new Promise((res, rej) => { const r=this._tx('readwrite').put(e); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
-    del(id) { return new Promise((res, rej) => { const r=this._tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); },
-    async clear() { return new Promise((res, rej) => { const r=this._tx('readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); },
-    async importAll(arr) { const s=this._tx('readwrite'); for(const e of arr) s.put(e); return new Promise(r=>{s.transaction.oncomplete=r;}); }
+  // ========== CONSTANTS & PERSISTENCE ==========
+  const CAT_COLORS = { growth: '#F97316', loss: '#EF4444', neutral: '#94A3B8' };
+  const CAT_LABELS = { growth: '📈 Growth Targets', loss: '📉 Loss Targets', neutral: '⚖️ Tracking' };
+
+  const METRIC_INFO = {
+    weight: "Total body mass. For consistency, measure in the morning after using the bathroom and before eating.",
+    bf: "Estimated percentage of total mass that is adipose tissue. Uses the Siri/Navy equation based on your neck, waist, and hip circumference.",
+    wthr: "Waist-to-Height Ratio. A vital health indicator. Ideally, your waist should be less than half your height (Ratio < 0.5).",
+    ffmi: "Fat-Free Mass Index. A measure of muscle mass normalized to height. Helps track pure muscle growth regardless of body fat fluctuations.",
+    setup: "To use GymTracker: 1. Set your Height & Gender in Settings. 2. Log measurements weekly. 3. Use 'Add to Home Screen' to save data permanently on your device.",
+    pwa: "Standalone Mode: To enable permanent saving, tap the Share icon (iOS) or Menu (Android) and select 'Add to Home Screen'. Normal browser visits start fresh."
   };
 
-  // ========== PROFILE (localStorage) ==========
+  const DUMMY_DATA = [
+    { id:'d1', date: '2024-03-01', weight: 85.0, waist: 92, neck: 39, shoulders: 120, chest: 105, bicepL: 35, bicepR: 35.2, isSample: true },
+    { id:'d2', date: '2024-03-15', weight: 84.2, waist: 91, neck: 39, shoulders: 121, chest: 105.5, bicepL: 35.5, bicepR: 35.7, isSample: true },
+    { id:'d3', date: '2024-04-01', weight: 83.5, waist: 89.5, neck: 38.5, shoulders: 123, chest: 107, bicepL: 36.2, bicepR: 36.3, isSample: true }
+  ];
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  // ========== DATABASE (IndexedDB or Session Fallback) ==========
+  const DB = {
+    _db: null,
+    _temp: JSON.parse(sessionStorage.getItem('gymtracker_temp_db') || '[]'),
+    async init() {
+      if (!isStandalone) return true;
+      return new Promise((resolve) => {
+        const req = indexedDB.open('gymtracker_db', 4);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('entries')) {
+            db.createObjectStore('entries', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
+          }
+        };
+        req.onsuccess = e => { this._db = e.target.result; resolve(true); };
+        req.onerror = () => { resolve(true); }; // Fail gracefully to temp
+      });
+    },
+    async getAll() {
+      if (!isStandalone || !this._db) return this._temp;
+      return new Promise((res, rej) => {
+        const tx = this._db.transaction('entries', 'readonly');
+        const req = tx.objectStore('entries').getAll();
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+        tx.onerror = () => rej(tx.error);
+      }).catch(() => []);
+    },
+    async add(entry) {
+      if (!isStandalone || !this._db) {
+        entry.id = Date.now();
+        this._temp.push(entry);
+        sessionStorage.setItem('gymtracker_temp_db', JSON.stringify(this._temp));
+        return;
+      }
+      return new Promise((res, rej) => {
+        const tx = this._db.transaction('entries', 'readwrite');
+        tx.objectStore('entries').add(entry);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    },
+    async put(entry) {
+      if (!isStandalone || !this._db) {
+        const idx = this._temp.findIndex(e => e.id === entry.id);
+        if (idx > -1) this._temp[idx] = entry;
+        sessionStorage.setItem('gymtracker_temp_db', JSON.stringify(this._temp));
+        return;
+      }
+      return new Promise((res, rej) => {
+        const tx = this._db.transaction('entries', 'readwrite');
+        tx.objectStore('entries').put(entry);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    },
+    async del(id) {
+      if (!isStandalone || !this._db) {
+        this._temp = this._temp.filter(e => e.id !== id);
+        sessionStorage.setItem('gymtracker_temp_db', JSON.stringify(this._temp));
+        return;
+      }
+      return new Promise((res, rej) => {
+        const tx = this._db.transaction('entries', 'readwrite');
+        tx.objectStore('entries').delete(id);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    },
+    async clear() {
+      if (!isStandalone || !this._db) { this._temp = []; sessionStorage.removeItem('gymtracker_temp_db'); return; }
+      return new Promise((res, rej) => { const tx = this._db.transaction('entries', 'readwrite'); tx.objectStore('entries').clear(); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+    },
+    async importAll(arr) {
+      if (!isStandalone || !this._db) {
+        arr.forEach(e => { e.id = Date.now() + Math.random(); this._temp.push(e); });
+        sessionStorage.setItem('gymtracker_temp_db', JSON.stringify(this._temp));
+        return;
+      }
+      return new Promise((res, rej) => {
+        const tx = this._db.transaction('entries', 'readwrite');
+        const store = tx.objectStore('entries');
+        arr.forEach(e => { delete e.id; store.add(e); });
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    }
+  };
+
+  // ========== PROFILE (localStorage or Session) ==========
   const Profile = {
     _key: 'gymtracker_profile',
-    defaults: { height:175, gender:'male', units:'metric', theme:'dark', setupDone:false },
-    get() { try { return { ...this.defaults, ...JSON.parse(localStorage.getItem(this._key)) }; } catch { return { ...this.defaults }; } },
-    set(data) { localStorage.setItem(this._key, JSON.stringify({ ...this.get(), ...data })); },
+    defaults: { 
+      height: 175, gender: 'male', wrist: 17, ankle: 22, goal: 'aesthetic', 
+      units: 'metric', theme: 'dark', setupDone: false,
+      targets: { chest: 0, biceps: 0, thighs: 0, waist: 0 }
+    },
+    get() {
+      const storage = isStandalone ? localStorage : sessionStorage;
+      try { return { ...this.defaults, ...JSON.parse(storage.getItem(this._key)) }; } catch { return { ...this.defaults }; }
+    },
+    set(data) {
+      const storage = isStandalone ? localStorage : sessionStorage;
+      storage.setItem(this._key, JSON.stringify({ ...this.get(), ...data }));
+    },
     isSetup() { return this.get().setupDone; }
   };
 
-  // ========== BODY FAT (Navy) ==========
+  // ========== CALCULATIONS ==========
   function calcBodyFat(entry, profile) {
     const h = profile.height, g = profile.gender, u = profile.units;
     let waist = entry.waist, neck = entry.neck, hips = entry.hips;
     if (!waist || !neck || !h) return null;
     if (g === 'female' && !hips) return null;
-    // Convert to cm if imperial
     const toCm = v => u === 'imperial' ? v * 2.54 : v;
     const hCm = toCm(h); const wCm = toCm(waist); const nCm = toCm(neck);
-    if (g === 'male') return Math.round((86.010 * Math.log10(wCm - nCm) - 70.041 * Math.log10(hCm) + 36.76) * 10) / 10;
-    const hipCm = toCm(hips);
-    return Math.round((163.205 * Math.log10(wCm + hipCm - nCm) - 97.684 * Math.log10(hCm) - 78.387) * 10) / 10;
+    if (wCm - nCm <= 0) return null; // Avoid NaN
+    if (g === 'male') {
+      const d = 1.0324 - 0.19077 * Math.log10(wCm - nCm) + 0.15456 * Math.log10(hCm);
+      return Math.round((495 / d - 450) * 10) / 10;
+    } else {
+      const hipCm = toCm(hips);
+      if (wCm + hipCm - nCm <= 0) return null;
+      const d = 1.29579 - 0.35004 * Math.log10(wCm + hipCm - nCm) + 0.22100 * Math.log10(hCm);
+      return Math.round((495 / d - 450) * 10) / 10;
+    }
+  }
+
+  function calcWtHR(entry, profile) {
+    if(!entry.waist || !profile.height) return null;
+    const waistCm = profile.units === 'imperial' ? entry.waist * 2.54 : entry.waist;
+    const hCm = profile.units === 'imperial' ? profile.height * 2.54 : profile.height;
+    return Math.round((waistCm / hCm) * 100) / 100;
+  }
+
+  function calcFFMI(entry, profile, bf) {
+    if(!entry.weight || !profile.height || !bf) return null;
+    const wKg = profile.units === 'imperial' ? entry.weight * 0.453592 : entry.weight;
+    const hM = profile.units === 'imperial' ? (profile.height * 2.54)/100 : profile.height/100;
+    const fatFreeMass = wKg * (1 - (bf/100));
+    const ffmi = fatFreeMass / (hM * hM);
+    const normFfmi = ffmi + 6.1 * (1.8 - hM);
+    return Math.round(normFfmi * 10) / 10;
+  }
+
+  function evalRating(val, badT, goodT, excT, isLessBetter=false) {
+    if(val == null) return null;
+    const s = isLessBetter ? (val <= excT ? 2 : val <= goodT ? 1 : 0) : (val >= excT ? 2 : val >= goodT ? 1 : 0);
+    if(s === 2) return {cls:'excellent', txt:'Excellent'};
+    if(s === 1) return {cls:'good', txt:'Good'};
+    return {cls:'fair', txt:'Needs Work'};
+  }
+
+  function getRatings(entry, profile) {
+    const r = [];
+    const g = profile.gender;
+    const goal = profile.goal || 'aesthetic';
+    const bicep = Math.max(entry.bicepL||0, entry.bicepR||0);
+    const calf = Math.max(entry.calveL||0, entry.calveR||0);
+    
+    const wthr = calcWtHR(entry, profile);
+    if(wthr !== null && wthr > 0.5) {
+      r.push({label:'Health Risk', desc:`Waist-to-Height Ratio (${wthr}) is > 0.5`, badge:{cls:'danger', txt:'High Risk'}});
+    }
+    
+    // Step 3: Aesthetic Logic by Gender
+    if (goal === 'aesthetic' || goal === 'lean') {
+      if(g === 'male' && entry.shoulders && entry.waist) {
+        const v = entry.shoulders / entry.waist;
+        r.push({label:'V-Taper (Adonis)', desc:`Shoulders to Waist (Target: 1.61)`, badge:evalRating(v, 1.4, 1.5, 1.61)});
+      } else if (g === 'female' && entry.waist && entry.hips) {
+        const h = entry.waist / entry.hips;
+        r.push({label:'Hourglass (Golden)', desc:`Waist to Hips (Target: 0.70)`, badge:evalRating(h, 0.78, 0.74, 0.70, true)});
+      }
+    }
+    
+    if(entry.waist && entry.hips) {
+      const w2h = entry.waist / entry.hips;
+      const tg = g === 'male' ? {g:0.95, e:0.9} : {g:0.85, e:0.8}; 
+      r.push({label:'Fat Distribution', desc:`Waist to Hip Ratio (${w2h.toFixed(2)})`, badge:evalRating(w2h, 1.0, tg.g, tg.e, true)});
+    }
+    
+    if (goal !== 'power' && entry.neck && bicep && calf) {
+      const avg = (entry.neck + bicep + calf)/3;
+      const maxD = Math.max(Math.abs(entry.neck-avg), Math.abs(bicep-avg), Math.abs(calf-avg));
+      const pct = maxD / avg; 
+      r.push({label:'Classic Symmetry', desc:'Neck vs Biceps vs Calves', badge:evalRating(pct, 0.15, 0.07, 0.03, true)});
+    }
+    
+    // Step 3: Logic by Archetype Targets
+    if (goal === 'aesthetic' && profile.wrist && entry.chest) {
+      const targetChest = profile.wrist * 6.5;
+      const targetArm = targetChest * 0.36;
+      r.push({label:'Chest Goal (McCallum)', desc:`Target: ${targetChest.toFixed(1)}`, badge:{cls:(entry.chest >= targetChest ? 'excellent' : 'fair'), txt:`${entry.chest} / ${targetChest.toFixed(1)}`}});
+      if (bicep > 0) {
+        r.push({label:'Arm Goal (McCallum)', desc:`Target: ${targetArm.toFixed(1)}`, badge:{cls:(bicep >= targetArm ? 'excellent' : 'fair'), txt:`${bicep} / ${targetArm.toFixed(1)}`}});
+      }
+    } else if (goal === 'lean' && wthr !== null) {
+      r.push({label:'Lean Model Target', desc:`Target WtHR: 0.43 - 0.45`, badge:{cls:(wthr <= 0.45 && wthr >= 0.43 ? 'excellent' : 'fair'), txt:`WtHR ${wthr}`}});
+    } else if (goal === 'power') {
+      r.push({label:'Power/Strength', desc:'Focus on raw mass.', badge:{cls:'neutral', txt:'Ideals Disabled'}});
+    }
+    
+    // Step 4: Symmetry & Imbalance Analysis
+    const bilats = [
+      {kL:'bicepL', kR:'bicepR', n:'Biceps'},
+      {kL:'forearmL', kR:'forearmR', n:'Forearms'},
+      {kL:'quadL', kR:'quadR', n:'Thighs'},
+      {kL:'calveL', kR:'calveR', n:'Calves'}
+    ];
+    const thresh = profile.units === 'imperial' ? 0.6 : 1.5;
+    bilats.forEach(b => {
+      if (entry[b.kL] && entry[b.kR]) {
+        const diff = Math.abs(entry[b.kL] - entry[b.kR]);
+        if (diff > thresh) {
+          const max = Math.max(entry[b.kL], entry[b.kR]);
+          const imbPct = (diff / max) * 100;
+          r.push({label:`${b.n} Imbalance`, desc:`Diff: ${diff.toFixed(1)} (${imbPct.toFixed(1)}%)`, badge:{cls:'warning', txt:'Unilateral Work!'}});
+        }
+      }
+    });
+
+    return r;
+  }
+
+  // Linear Regression Helper
+  function predictTime(data, goal) {
+    if (data.length < 3) return null;
+    const n = data.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    // Map dates to numerical indices
+    data.forEach((d, i) => {
+      sumX += i;
+      sumY += d.v;
+      sumXY += i * d.v;
+      sumX2 += i * i;
+    });
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    if (slope === 0) return null;
+    const targetIdx = (goal - intercept) / slope;
+    if (targetIdx < 0) return null; // Moving away from goal
+    if (targetIdx <= n - 1) return 'Reached';
+    
+    const daysSinceStart = daysBetween(data[0].d, new Date().toISOString().split('T')[0]);
+    const avgDaysBetween = daysSinceStart / (n - 1);
+    const estDaysFromNow = (targetIdx - (n-1)) * avgDaysBetween;
+    
+    const d = new Date();
+    d.setDate(d.getDate() + estDaysFromNow);
+    return d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
   }
 
   // ========== NAVIGATION ==========
@@ -591,10 +1065,13 @@
   // ========== SETUP OVERLAY ==========
   $('btn-setup-save').addEventListener('click', () => {
     const h = parseFloat($('setup-height').value);
+    const wrist = parseFloat($('setup-wrist').value) || 0;
+    const ankle = parseFloat($('setup-ankle').value) || 0;
     if (!h || h < 50 || h > 280) { showToast('Please enter a valid height', 'error'); return; }
     const g = $('setup-gender').value;
+    const goal = $('setup-goal').value;
     const u = $('setup-units').querySelector('.toggle-btn.active').dataset.value;
-    Profile.set({ height:h, gender:g, units:u, theme:'dark', setupDone:true });
+    Profile.set({ height:h, wrist, ankle, goal, gender:g, units:u, theme:'dark', setupDone:true });
     $('setup-overlay').classList.add('hidden');
     syncSettingsUI();
     refreshDashboard();
@@ -605,6 +1082,14 @@
     const p = Profile.get();
     $('setting-height').value = p.height;
     $('setting-gender').value = p.gender;
+    $('setting-wrist').value = p.wrist || '';
+    $('setting-ankle').value = p.ankle || '';
+    $('setting-goal').value = p.goal || 'aesthetic';
+    // targets
+    $('target-chest').value = p.targets?.chest || '';
+    $('target-biceps').value = p.targets?.biceps || '';
+    $('target-thighs').value = p.targets?.thighs || '';
+    $('target-waist').value = p.targets?.waist || '';
     // units toggle
     $('toggle-units').querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.value === p.units));
     // theme toggle
@@ -617,12 +1102,22 @@
   });
   $('btn-save-settings').addEventListener('click', () => {
     const h = parseFloat($('setting-height').value);
+    const wrist = parseFloat($('setting-wrist').value) || 0;
+    const ankle = parseFloat($('setting-ankle').value) || 0;
     if (!h || h < 50 || h > 280) { showToast('Invalid height','error'); return; }
     Profile.set({
       height: h,
       gender: $('setting-gender').value,
+      wrist, ankle,
+      goal: $('setting-goal').value,
       units: $('toggle-units').querySelector('.toggle-btn.active').dataset.value,
       theme: $('toggle-theme').querySelector('.toggle-btn.active').dataset.value,
+      targets: {
+        chest: parseFloat($('target-chest').value) || 0,
+        biceps: parseFloat($('target-biceps').value) || 0,
+        thighs: parseFloat($('target-thighs').value) || 0,
+        waist: parseFloat($('target-waist').value) || 0
+      }
     });
     showToast('Settings saved');
     refreshDashboard();
@@ -670,24 +1165,100 @@
     editingId = null;
     $('entry-form').reset();
     $('entry-date').value = new Date().toISOString().split('T')[0];
+    if($('entry-state')) {
+      $('entry-state').querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.value === 'cold'));
+    }
+    if($('entry-photo')) {
+      $('entry-photo').value = '';
+      $('entry-photo-data').value = '';
+      $('photo-preview').style.display = 'none';
+      $('photo-preview-img').src = '';
+    }
     $('form-title').textContent = 'New Entry';
     $('btn-save').textContent = 'Save Entry';
   }
   function loadEntryIntoForm(entry) {
     editingId = entry.id;
     $('entry-date').value = entry.date;
+    if($('entry-state') && entry.state) {
+      $('entry-state').querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.value === entry.state));
+    }
     ZONES.forEach(z => { const inp = $('input-' + z.key); if (inp) inp.value = entry[z.key] ?? ''; });
+    if($('entry-photo-data')) {
+      if(entry.photo) {
+        $('entry-photo-data').value = entry.photo;
+        $('photo-preview-img').src = entry.photo;
+        $('photo-preview').style.display = 'block';
+      } else {
+        $('entry-photo-data').value = '';
+        $('photo-preview').style.display = 'none';
+      }
+    }
     $('form-title').textContent = 'Edit Entry';
     $('btn-save').textContent = 'Update Entry';
     navigateTo('add');
   }
+  
+  // ========== PHOTO COMPRESSION ==========
+  function compressPhoto(dataUrl, maxSize = 800) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w <= maxSize && h <= maxSize) { resolve(dataUrl); return; }
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  if($('entry-photo')) {
+    $('entry-photo').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if(!file) { $('entry-photo-data').value = ''; $('photo-preview').style.display = 'none'; return; }
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        const compressed = await compressPhoto(ev.target.result);
+        $('entry-photo-data').value = compressed;
+        $('photo-preview-img').src = compressed;
+        $('photo-preview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   $('entry-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const entry = { date: $('entry-date').value };
+    const stateBtn = $('entry-state') ? $('entry-state').querySelector('.toggle-btn.active') : null;
+    const entry = { date: $('entry-date').value, state: stateBtn ? stateBtn.dataset.value : 'cold' };
+    if ($('entry-photo-data') && $('entry-photo-data').value) {
+      entry.photo = $('entry-photo-data').value;
+    }
     if (!entry.date) { showToast('Please select a date','error'); return; }
     let hasValue = false;
     ZONES.forEach(z => { const v = parseFloat($('input-' + z.key).value); if (!isNaN(v)) { entry[z.key] = v; hasValue = true; } });
     if (!hasValue) { showToast('Enter at least one measurement','error'); return; }
+
+    const allEntries = (await DB.getAll()).sort((a,b) => b.date.localeCompare(a.date));
+    const recent = allEntries.find(en => en.id !== editingId && daysBetween(en.date, entry.date) <= 7);
+    let largeChange = false;
+    if (recent) {
+      ZONES.forEach(z => {
+        if (entry[z.key] && recent[z.key]) {
+          if (Math.abs(entry[z.key] - recent[z.key]) / recent[z.key] > 0.1) largeChange = true;
+        }
+      });
+    }
+    if (largeChange) {
+      if (!(await confirmAction('Large Change Detected', 'A measurement differs by >10% from your last entry this week. Save anyway?'))) return;
+    }
+
     try {
       if (editingId) { entry.id = editingId; await DB.put(entry); showToast('Entry updated'); }
       else { await DB.add(entry); showToast('Entry saved'); }
@@ -706,7 +1277,7 @@
     chartInstances[canvasId] = new Chart(ctx, {
       type: 'line',
       data: { labels, datasets: [{ data, borderColor: color, backgroundColor: grad, borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: color }] },
-      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1a1f42', titleFont:{size:10,family:'Inter'}, bodyFont:{size:10,family:'Inter'}, padding:6, cornerRadius:6, displayColors:false } }, scales:{ x:{display:false}, y:{display:false} }, interaction:{ intersect:false, mode:'index' } }
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1F2937', titleFont:{size:10,family:'Barlow'}, bodyFont:{size:10,family:'Barlow'}, padding:6, cornerRadius:0, displayColors:false } }, scales:{ x:{display:false}, y:{display:false} }, interaction:{ intersect:false, mode:'index' } }
     });
   }
 
@@ -714,28 +1285,98 @@
   async function refreshDashboard() {
     const entries = (await DB.getAll()).sort((a,b) => a.date.localeCompare(b.date));
     const profile = Profile.get();
-    const latest = entries[entries.length - 1];
-    const prev = entries.length > 1 ? entries[entries.length - 2] : null;
+    
+    const isShowingSample = entries.length === 0;
+    const activeEntries = isShowingSample ? DUMMY_DATA : entries;
+    const latest = activeEntries[activeEntries.length - 1];
 
     // Days badge
-    if (latest) {
+    if (isShowingSample) {
+      $('days-badge').innerHTML = '<span style="color:var(--accent)">SAMPLE DATA MODE</span>';
+      $('days-badge').style.borderColor = 'var(--accent)';
+    } else if (latest) {
       const days = daysBetween(latest.date, new Date().toISOString().split('T')[0]);
       $('days-badge').textContent = days === 0 ? 'Logged today' : `${days} day${days>1?'s':''} since last entry`;
-    } else { $('days-badge').textContent = 'No entries yet'; }
+      $('days-badge').style.borderColor = 'var(--border)';
+    } else { 
+      $('days-badge').textContent = 'No entries yet'; 
+      $('days-badge').style.borderColor = 'var(--border)';
+    }
 
     // Summary cards
     if (latest) {
       const bf = calcBodyFat(latest, profile);
+      const wthr = calcWtHR(latest, profile);
+      const ffmi = calcFFMI(latest, profile, bf);
+      
       $('bf-value').textContent = bf !== null ? bf + '%' : '—';
-      $('weight-value').textContent = latest.weight ? latest.weight + ' ' + (profile.units==='imperial'?'lbs':'kg') : '—';
-      if (prev) {
-        showDelta('bf-delta', bf, prev ? calcBodyFat(prev, profile) : null, 'loss');
-        showDelta('weight-delta', latest.weight, prev.weight, 'neutral');
+      $('weight-value').textContent = latest.weight ? latest.weight : '—';
+      $('stat-weight-sub').textContent = profile.units==='imperial'?'lbs':'kg';
+      $('wthr-value').textContent = wthr !== null ? wthr : '—';
+      $('ffmi-value').textContent = ffmi !== null ? ffmi : '—';
+      
+      const ratings = getRatings(latest, profile);
+      if(ratings.length > 0) {
+        $('ratings-section').style.display = '';
+        $('ratings-list').innerHTML = ratings.map(r => `
+          <div class="rating-item" style="${isShowingSample ? 'opacity:0.7;' : ''}">
+            <div>
+              <div class="rating-label">${r.label}</div>
+              <div class="rating-desc">${r.desc}</div>
+            </div>
+            <div class="rating-badge ${r.badge.cls || r.badge}">${r.badge.txt || r.badge}</div>
+          </div>
+        `).join('');
+      } else {
+        $('ratings-section').style.display = 'none';
       }
-    } else { $('bf-value').textContent = '—'; $('weight-value').textContent = '—'; }
+
+      // Growth Visuals
+      $('growth-visuals').style.display = '';
+      const now = new Date(), monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const monthEntries = activeEntries.filter(e => e.date >= monthStart);
+      if (monthEntries.length >= 2) {
+        const mFirst = monthEntries[0], mLast = monthEntries[monthEntries.length - 1];
+        let totalGrowth = 0;
+        ZONES.filter(z => z.category === 'growth').forEach(z => { if (mFirst[z.key] && mLast[z.key]) totalGrowth += mLast[z.key] - mFirst[z.key]; });
+        $('volume-banner').textContent = `You've added ${totalGrowth.toFixed(1)} ${profile.units === 'imperial' ? 'in' : 'cm'} to your frame this month!`;
+      } else {
+        $('volume-banner').textContent = 'Start tracking to see monthly growth!';
+      }
+      // Milestone Predictions
+      const predList = $('predictions-list'); predList.innerHTML = '';
+      const targetMap = [
+        {k:'chest', l:'Chest', t:profile.targets.chest || (isShowingSample ? 110 : 0)},
+        {k:'bicepL', l:'Arms', t:profile.targets.biceps || (isShowingSample ? 40 : 0)},
+        {k:'quadL', l:'Thighs', t:profile.targets.thighs || (isShowingSample ? 65 : 0)},
+        {k:'waist', l:'Waist', t:profile.targets.waist || 0}
+      ];
+
+      targetMap.forEach(m => {
+        if (m.t > 0) {
+          const history = activeEntries.filter(e => e[m.k] != null).map(e => ({d:e.date, v:e[m.k]}));
+          const prediction = predictTime(history, m.t);
+          predList.innerHTML += `
+            <div class="prediction-card" style="${isShowingSample ? 'opacity:0.7;' : ''}">
+              <div class="pred-goal">${m.l} Goal: ${m.t} ${profile.units === 'imperial' ? 'in' : 'cm'}</div>
+              <div class="pred-eta">${prediction ? (prediction === 'Reached' ? '✅ Goal Reached!' : 'Target hit by ' + prediction) : '📈 Need more data for prediction'}</div>
+            </div>`;
+        }
+      });
+      if (predList.innerHTML === '') predList.innerHTML = '<p style="color:var(--text-muted)">Set measurement targets in Settings to see predictions.</p>';
+
+    } else { 
+      $('bf-value').textContent = '—'; 
+      $('weight-value').textContent = '—'; 
+      $('stat-weight-sub').textContent = '';
+      $('wthr-value').textContent = '—'; 
+      $('ffmi-value').textContent = '—'; 
+      $('ratings-section').style.display = 'none';
+      $('growth-visuals').style.display = 'none';
+    }
 
     // Sparkline sections
-    if (!entries.length) { $('dash-empty').style.display=''; $('dash-growth').innerHTML=''; $('dash-loss').innerHTML=''; $('dash-neutral').innerHTML=''; return; }
+    if (!activeEntries.length) { $('dash-empty').style.display=''; $('dash-growth').innerHTML=''; $('dash-loss').innerHTML=''; $('dash-neutral').innerHTML=''; return; }
     $('dash-empty').style.display = 'none';
 
     const categories = { growth:[], loss:[], neutral:[] };
@@ -746,22 +1387,25 @@
       container.innerHTML = `<div class="section-label">${CAT_LABELS[cat]}</div><div class="spark-grid" id="grid-${cat}"></div>`;
       const grid = document.getElementById('grid-' + cat);
       zones.forEach(z => {
-        const vals = entries.map(e => e[z.key]).filter(v => v != null);
+        const vals = activeEntries.map(e => e[z.key]).filter(v => v != null);
         if (!vals.length) return;
-        const labels = entries.filter(e => e[z.key] != null).map(e => fmtDate(e.date));
+        const labels = activeEntries.filter(e => e[z.key] != null).map(e => fmtDate(e.date));
         const cur = vals[vals.length - 1];
         const prv = vals.length > 1 ? vals[vals.length - 2] : null;
+        
+        const chartColor = CAT_COLORS[cat];
         const cid = 'chart-' + z.key;
         const delta = prv !== null ? cur - prv : null;
         const deltaClass = delta === null ? '' : getDeltaClass(delta, z.category);
         const deltaText = delta === null ? '' : (delta > 0 ? '+' : '') + delta.toFixed(1);
         const card = document.createElement('div'); card.className = 'spark-card';
+        if (isShowingSample) card.style.opacity = '0.7';
         card.innerHTML = `
           <div class="spark-top"><span class="spark-name">${z.label}</span><span class="spark-delta ${deltaClass}">${deltaText}</span></div>
           <div class="spark-val">${cur} <small style="font-size:.65rem;color:var(--text-muted)">${unitLabel(z)}</small></div>
           <div class="spark-chart"><canvas id="${cid}"></canvas></div>`;
         grid.appendChild(card);
-        requestAnimationFrame(() => createSparkline(cid, labels, vals, CAT_COLORS[cat]));
+        requestAnimationFrame(() => createSparkline(cid, labels, vals, chartColor));
       });
     }
   }
@@ -772,52 +1416,53 @@
     if (category === 'loss') return delta < 0 ? 'positive' : 'negative';
     return delta > 0 ? 'positive' : 'negative';
   }
-  function showDelta(id, cur, prv, category) {
-    const el = $(id); if (!cur || !prv) { el.style.display='none'; return; }
-    const d = cur - prv; const cls = getDeltaClass(d, category);
-    el.className = 'delta ' + cls;
-    el.textContent = (d > 0 ? '↑ +' : '↓ ') + Math.abs(d).toFixed(1);
-    el.style.display = '';
-  }
 
   // ========== HISTORY ==========
   async function refreshHistory() {
-    const entries = (await DB.getAll()).sort((a,b) => b.date.localeCompare(a.date));
+    const realEntries = await DB.getAll();
+    const isSample = realEntries.length === 0;
+    const entries = (isSample ? DUMMY_DATA : realEntries).sort((a,b) => b.date.localeCompare(a.date));
+    
     const list = $('history-list'); list.innerHTML = '';
-    $('history-empty').style.display = entries.length ? 'none' : '';
+    $('history-empty').style.display = (entries.length === 0) ? '' : 'none';
     const profile = Profile.get();
+    
     entries.forEach(entry => {
       const div = document.createElement('div'); div.className = 'history-entry';
+      if (isSample) div.style.opacity = '0.7';
       const measured = ZONES.filter(z => entry[z.key] != null);
       const bf = calcBodyFat(entry, profile);
+      const stateLabel = entry.state === 'pumped' ? ' · 🔥 Pumped' : ' · ❄️ Cold';
       div.innerHTML = `
         <div class="history-header" onclick="this.parentElement.classList.toggle('expanded')">
-          <div><div class="history-date">${fmtDate(entry.date)}</div>
-            <div class="history-summary">${measured.length} measurements${bf !== null ? ' · BF ' + bf + '%' : ''}</div></div>
+          <div><div class="history-date">${fmtDate(entry.date)}${isSample ? ' <small>(Sample)</small>' : ''}</div>
+            <div class="history-summary">${measured.length} measurements${bf !== null ? ' · BF ' + bf + '%' : ''}${stateLabel}</div></div>
           <span class="history-chevron">▼</span>
         </div>
         <div class="history-body">
           <div class="history-grid">${measured.map(z => `<div class="history-item"><span class="hi-label">${z.label}</span><span class="hi-value">${entry[z.key]} ${unitLabel(z)}</span></div>`).join('')}</div>
+          ${entry.photo ? `<div style="margin-top:12px;text-align:center;"><img src="${entry.photo}" style="max-width:100%; max-height:220px; border-radius:4px; border:var(--border-width) solid var(--border);"></div>` : ''}
           <div class="history-actions">
-            <button class="ha-edit" onclick="loadEntryIntoForm(${JSON.stringify(entry).replace(/"/g,'&quot;')})">Edit</button>
-            <button class="ha-delete" data-id="${entry.id}">Delete</button>
+            <button class="ha-edit" ${isSample ? 'disabled' : ''} onclick="loadEntryIntoForm(${JSON.stringify(entry).replace(/"/g,'&quot;')})">Edit</button>
+            <button class="ha-delete" ${isSample ? 'disabled' : ''} data-id="${entry.id}">Delete</button>
           </div>
         </div>`;
-      div.querySelector('.ha-delete').addEventListener('click', async () => {
-        if (await confirmAction('Delete Entry?', 'This entry from ' + fmtDate(entry.date) + ' will be permanently removed.')) {
-          await DB.del(entry.id); showToast('Entry deleted'); refreshHistory();
-        }
-      });
+      if (!isSample) {
+        div.querySelector('.ha-delete').addEventListener('click', async () => {
+          if (await confirmAction('Delete Entry?', 'This entry from ' + fmtDate(entry.date) + ' will be permanently removed.')) {
+            await DB.del(entry.id); showToast('Entry deleted'); refreshHistory();
+          }
+        });
+      }
       list.appendChild(div);
     });
   }
 
   // ========== STORAGE PROTECTION PANEL ==========
   async function checkStoragePersistence() {
-    // Only show once per install (track with localStorage flag)
+    if (!isStandalone) return;
     if (localStorage.getItem('gymtracker_storagechecked')) return;
     localStorage.setItem('gymtracker_storagechecked', '1');
-
     const panel = $('storage-panel');
     const icon  = $('sp-icon');
     const title = $('sp-title');
@@ -826,26 +1471,18 @@
       panel.classList.remove('visible');
       setTimeout(() => panel.classList.add('hidden'), 400);
     });
-
     let granted = false;
-    if (navigator.storage && navigator.storage.persist) {
-      granted = await navigator.storage.persist();
-    }
-
+    if (navigator.storage && navigator.storage.persist) granted = await navigator.storage.persist();
     if (granted) {
-      icon.textContent  = '🔒';
-      icon.className    = 'sp-icon granted';
+      icon.textContent  = '🔒'; icon.className    = 'sp-icon granted';
       title.textContent = 'Storage Protected';
-      desc.textContent  = 'Your data is safe from automatic eviction. Chrome will not delete it even when storage is low.';
+      desc.textContent  = 'Your data is safe from automatic eviction.';
     } else {
-      icon.textContent  = '⚠️';
-      icon.className    = 'sp-icon denied';
+      icon.textContent  = '⚠️'; icon.className    = 'sp-icon denied';
       title.textContent = 'Storage Not Persistent';
-      desc.textContent  = 'Your browser declined persistent storage. Consider exporting a JSON backup from Settings occasionally.';
+      desc.textContent  = 'Your browser declined persistent storage. Export JSON backups occasionally.';
     }
-
     panel.classList.remove('hidden');
-    // Small delay so the slide-up animation is visible
     requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('visible')));
   }
 
@@ -856,12 +1493,35 @@
     else { syncSettingsUI(); }
     resetForm();
     refreshDashboard();
-    // Register SW
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-    // Check storage persistence (shows panel on first open)
     checkStoragePersistence();
+    if (!isStandalone) $('demo-banner').style.display = 'block';
+
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.info-btn');
+      if (btn) {
+        const info = METRIC_INFO[btn.dataset.info];
+        if (info) {
+          $('info-title').textContent = btn.parentElement.textContent.replace('!', '').trim();
+          $('info-msg').textContent = info;
+          $('info-modal').classList.add('show');
+        }
+      }
+    });
+
+    $('btn-guide').onclick = () => {
+      $('info-title').textContent = "GymTracker Guide";
+      $('info-msg').innerHTML = `
+        <p><strong>1. Initial Setup:</strong> Set your height and gender in the Settings tab. This makes calculations accurate.</p>
+        <p style="margin-top:10px"><strong>2. Logging:</strong> Tap '+' to add a new entry. Consistent measurements (same time of day) produce the best graphs.</p>
+        <p style="margin-top:10px"><strong>3. Standalone Mode:</strong> ${METRIC_INFO.pwa}</p>
+      `;
+      $('info-modal').classList.add('show');
+    };
   }
   init();
   </script>
+  
+
 </body>
 </html>

@@ -2,17 +2,16 @@
 
 A simple, private way to track your body measurements and see your progress over time.
 
-## 🚀 How to Set Up (Get it on your phone)
+## 🚀 How to Install & Use (Get it on your phone)
 
-1. **Upload your files:** Go to [Netlify Drop](https://app.netlify.com/drop) on your computer.
-2. **Drag and drop:** Drag the entire `track app` folder onto that page.
-3. **Get your link:** Netlify will give you a private website link (e.g., `https://shiny-gym-123.netlify.app`).
-4. **Open on your phone:** Send that link to your phone and open it in Chrome (Android) or Safari (iPhone).
-5. **Add to Home Screen:**
-   - **Android:** Tap the three dots (⋮) and select **"Add to Home Screen"**.
-   - **iPhone:** Tap the Share button and select **"Add to Home Screen"**.
+The app is deployed directly on GitHub Pages! 
 
-Now you have a private gym app that works even without internet!
+1. **Open the link:** Visit [https://yaser-rh.github.io/gym-measurement-tracking/](https://yaser-rh.github.io/gym-measurement-tracking/) in your browser (Safari on iPhone, Chrome on Android).
+2. **Add / Pin to Home Screen:**
+   - **Android (Chrome):** Tap the menu button (three dots `⋮` at the top right) and select **"Add to Home Screen"**.
+   - **iPhone (Safari):** Tap the Share button (square with an arrow pointing up at the bottom) and select **"Add to Home Screen"**.
+
+Now you have a private gym app pinned as an app icon on your phone that works fully offline without internet!
 
 ---
 
@@ -33,16 +32,17 @@ This app is designed with a "Privacy-First, Cloud-Free" architecture.
 ## GymTracker 🏋️‍♂️ (متتبع التمارين)
 وسيلة بسيطة وخاصة لتتبع قياسات جسمك ومراقبة تطورك مع مرور الوقت.
 
-### 🚀 كيفية الإعداد (تثبيته على هاتفك)
-1.  **رفع الملفات:** اذهب إلى موقع [Netlify Drop](https://app.netlify.com/drop) عبر جهاز الكمبيوتر.
-2.  **السحب والإفلات:** قم بسحب مجلد `track app` بالكامل وإفلاته داخل الصفحة.
-3.  **الحصول على الرابط:** سيمنحك الموقع رابطاً خاصاً (مثال: `https://shiny-gym-123.netlify.app`).
-4.  **الفتح على الهاتف:** أرسل الرابط إلى هاتفك وافتحه باستخدام متصفح كروم (أندرويد) أو سفاري (آيفون).
-5.  **الإضافة إلى الشاشة الرئيسية:**
-    -   **أندرويد:** اضغط على النقاط الثلاث (⋮) ثم اختر **"الإضافة إلى الشاشة الرئيسية"**.
-    -   **آيفون:** اضغط على زر **"مشاركة"** ثم اختر **"الإضافة إلى الشاشة الرئيسية"**.
+### 🚀 كيفية التثبيت والاستخدام (على هاتفك)
 
-الآن أصبح لديك تطبيق رياضي خاص يعمل حتى بدون إنترنت!
+التطبيق مرفوع وجاهز للاستخدام مباشرة عبر GitHub Pages!
+
+1. **فتح الرابط:** قم بزيارة الرابط التالي من متصفح هاتفك (Safari للآيفون، أو Chrome للأندرويد):
+   [https://yaser-rh.github.io/gym-measurement-tracking/](https://yaser-rh.github.io/gym-measurement-tracking/)
+2. **الإضافة إلى الشاشة الرئيسية (تثبيت كـ تطبيق):**
+   - **أندرويد (Chrome):** اضغط على زر القائمة (الثلاث نقاط `⋮` في الأعلى) ثم اختر **"الإضافة إلى الشاشة الرئيسية"** (Add to Home Screen).
+   - **آيفون (Safari):** اضغط على زر المشاركة (مربع يخرج منه سهم للأعلى في الأسفل) ثم اختر **"الإضافة إلى الشاشة الرئيسية"** (Add to Home Screen).
+
+الآن أصبح لديك تطبيق رياضي خاص ومثبت على شاشة هاتفك يعمل بالكامل بدون اتصال بالإنترنت!
 
 ---
 
